@@ -36,3 +36,27 @@ export const loginValidationSchema = z.object({
     })
     .max(100, { error: "Password length can be maximum 100 character!" }),
 });
+
+export const forgotPasswordValidationSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+});
+
+export const resetPasswordValidationSchema = z
+  .object({
+    token: z.string().min(1, { message: "Token is required" }),
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters" })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter",
+      })
+      .regex(/[a-z]/, {
+        message: "Password must contain at least one lowercase letter",
+      })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });

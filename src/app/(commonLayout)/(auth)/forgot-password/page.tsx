@@ -1,52 +1,47 @@
-"use server";
+import ForgotPasswordForm from "@/components/modules/auth/ForgotPasswordForm";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Metadata } from "next";
+import Link from "next/link";
 
-import { envVariables } from "@/lib/env";
+export const metadata: Metadata = {
+  title: "Forgot Password - Tourify",
+  description: "Reset your Tourify account password.",
+};
 
-
-async function forgotPasswordAction(formData: FormData) {
-  "use server";
-  const email = String(formData.get("email") || "");
-  try {
-    const res = await fetch(`${envVariables.BASE_API_URL}/auth/forgot-password`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    const json = await res.json();
-    if (!res.ok) return { error: json?.message || "Failed to send reset link" };
-    return { success: true };
-  } catch {
-    return { error: "Network error. Please try again." };
-  }
-}
-
-export default async function ForgotPasswordPage() {
+const ForgotPasswordPage = () => {
   return (
-    <div className='max-w-md mx-auto py-12 px-4'>
-      <h1 className='text-2xl font-semibold mb-6'>Forgot Password</h1>
-      <form
-        action={async (formData: FormData) => {
-          await forgotPasswordAction(formData);
-        }}
-        className='space-y-4'>
-        <div>
-          <label className='block text-sm font-medium'>Email</label>
-          <input
-            name='email'
-            type='email'
-            required
-            className='mt-1 w-full rounded border px-3 py-2'
-          />
-        </div>
-        <button
-          type='submit'
-          className='w-full rounded bg-black text-white py-2'>
-          Send Reset Link
-        </button>
-      </form>
-      <p className='mt-4 text-sm text-zinc-600'>
-        Check your email for the reset link.
-      </p>
+    <div className='flex min-h-svh w-full items-center justify-center p-6 md:p-10'>
+      <div className='w-full max-w-md'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Forgot Password</CardTitle>
+            <CardDescription>
+              Enter your email to receive a password reset link
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ForgotPasswordForm />
+            
+            {/* Back to login link at bottom */}
+            <div className="mt-6 pt-4 border-t text-center">
+              <Link 
+                href="/login" 
+                className="text-sm text-blue-600 hover:underline inline-flex items-center"
+              >
+                ← Back to Login
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default ForgotPasswordPage;

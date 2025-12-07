@@ -1,63 +1,44 @@
-"use server";
+import ResetPasswordForm from "@/components/modules/auth/ResetPasswordForm";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Metadata } from "next";
 
-import { envVariables } from "@/lib/env";
+export const metadata: Metadata = {
+  title: "Reset Password - Tourify",
+  description: "Reset your Tourify account password.",
+};
 
-async function resetPasswordAction(formData: FormData) {
-  "use server";
-  const token = String(formData.get("token") || "");
-  const password = String(formData.get("password") || "");
-  try {
-    const res = await fetch(`${envVariables.BASE_API_URL}/auth/reset-password`, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: token },
-      body: JSON.stringify({ password }),
-    });
-    const json = await res.json();
-    if (!res.ok) return { error: json?.message || "Failed to reset password" };
-    return { success: true };
-  } catch {
-    return { error: "Network error. Please try again." };
-  }
+interface ResetPasswordPageProps {
+  searchParams?: {
+    token?: string;
+  };
 }
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[]>;
-}) {
-  const token =
-    (Array.isArray(searchParams?.token)
-      ? searchParams?.token[0]
-      : searchParams?.token) || "";
+const ResetPasswordPage = ({ searchParams }: ResetPasswordPageProps) => {
+  const token = searchParams?.token || "";
+
   return (
-    <div className='max-w-md mx-auto py-12 px-4'>
-      <h1 className='text-2xl font-semibold mb-6'>Reset Password</h1>
-      <form
-        action={async (formData: FormData) => {
-          const result = await resetPasswordAction(formData);
-          if (result.error) {
-            alert(result.error);
-          } else {
-            alert("Password reset successful!");
-          }
-        }}
-        className='space-y-4'>
-        <input type='hidden' name='token' value={token} />
-        <div>
-          <label className='block text-sm font-medium'>New Password</label>
-          <input
-            name='password'
-            type='password'
-            required
-            className='mt-1 w-full rounded border px-3 py-2'
-          />
-        </div>
-        <button
-          type='submit'
-          className='w-full rounded bg-black text-white py-2'>
-          Reset Password
-        </button>
-      </form>
+    <div className='flex min-h-svh w-full items-center justify-center p-6 md:p-10'>
+      <div className='w-full max-w-md'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Reset Password</CardTitle>
+            <CardDescription>
+              Enter your new password below
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResetPasswordForm token={token} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default ResetPasswordPage;
