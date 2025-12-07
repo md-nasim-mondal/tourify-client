@@ -1,9 +1,10 @@
 "use server";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 async function resetPasswordAction(formData: FormData) {
-  'use server'
+  "use server";
   const token = String(formData.get("token") || "");
   const password = String(formData.get("password") || "");
   try {
@@ -20,11 +21,18 @@ async function resetPasswordAction(formData: FormData) {
   }
 }
 
-export default async function ResetPasswordPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
-  const token = (Array.isArray(searchParams?.token) ? searchParams?.token[0] : searchParams?.token) || "";
+export default async function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[]>;
+}) {
+  const token =
+    (Array.isArray(searchParams?.token)
+      ? searchParams?.token[0]
+      : searchParams?.token) || "";
   return (
-    <div className="max-w-md mx-auto py-12 px-4">
-      <h1 className="text-2xl font-semibold mb-6">Reset Password</h1>
+    <div className='max-w-md mx-auto py-12 px-4'>
+      <h1 className='text-2xl font-semibold mb-6'>Reset Password</h1>
       <form
         action={async (formData: FormData) => {
           const result = await resetPasswordAction(formData);
@@ -34,14 +42,22 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
             alert("Password reset successful!");
           }
         }}
-        className="space-y-4"
-      >
-        <input type="hidden" name="token" value={token} />
+        className='space-y-4'>
+        <input type='hidden' name='token' value={token} />
         <div>
-          <label className="block text-sm font-medium">New Password</label>
-          <input name="password" type="password" required className="mt-1 w-full rounded border px-3 py-2" />
+          <label className='block text-sm font-medium'>New Password</label>
+          <input
+            name='password'
+            type='password'
+            required
+            className='mt-1 w-full rounded border px-3 py-2'
+          />
         </div>
-        <button type="submit" className="w-full rounded bg-black text-white py-2">Reset Password</button>
+        <button
+          type='submit'
+          className='w-full rounded bg-black text-white py-2'>
+          Reset Password
+        </button>
       </form>
     </div>
   );
