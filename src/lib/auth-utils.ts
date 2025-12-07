@@ -15,23 +15,27 @@ export const authRoutes = [
 ];
 
 export const commonProtectedRoutes: RouteConfig = {
-  exact: ["/my-profile", "/settings", "/change-password"],
-  patterns: [], // [/password/change-password, /password/reset-password => /password/*]
+  exact: [],
+  patterns: [/^\/dashboard(?!\/admin|\/guide|\/tourist)/], // /dashboard/* but not /dashboard/admin, /guide, /tourist
 };
 
 export const guideProtectedRoutes: RouteConfig = {
-  patterns: [/^\/guide/], // Routes starting with /guide/* , /assistants, /appointments/*
-  exact: [], // "/assistants"
+  patterns: [/^\/guide/, /^\/dashboard\/guide/], // /guide/* and /dashboard/guide/*
+  exact: [],
 };
 
 export const adminProtectedRoutes: RouteConfig = {
-  patterns: [/^\/admin/], // Routes starting with /admin/*
-  exact: [], // "/admins"
+  patterns: [/^\/admin/, /^\/dashboard\/admin/], // /admin/* and /dashboard/admin/*
+  exact: [],
 };
 
 export const touristProtectedRoutes: RouteConfig = {
-  patterns: [/^\/dashboard/], // Routes starting with /dashboard/*
-  exact: [], // "/dashboard"
+  patterns: [
+    /^\/tourist/,
+    /^\/dashboard(?=\/tourist|$)/,
+    /^\/dashboard\/tourist/,
+  ], // /dashboard and /dashboard/tourist/*
+  exact: [],
 };
 
 export const isAuthRoute = (pathname: string) => {
@@ -69,16 +73,16 @@ export const getRouteOwner = (
 
 export const getDefaultDashboardRoute = (role: UserRole): string => {
   if (role === "SUPER_ADMIN") {
-    return "/admin/dashboard";
+    return "/dashboard/admin";
   }
   if (role === "ADMIN") {
-    return "/admin/dashboard";
+    return "/dashboard/admin";
   }
   if (role === "GUIDE") {
-    return "/guide/dashboard";
+    return "/dashboard/guide";
   }
   if (role === "TOURIST") {
-    return "/dashboard";
+    return "/dashboard/tourist";
   }
   return "/";
 };

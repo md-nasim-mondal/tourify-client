@@ -1,61 +1,85 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import type { NextRequest } from "next/server";
-import { jwtDecode } from "jwt-decode";
+import { NextResponse } from "next/server";
+import {
+  getDefaultDashboardRoute,
+  getRouteOwner,
+  isAuthRoute,
+  UserRole,
+} from "./lib/auth-utils";
+import { deleteCookie, getCookie } from "./services/auth/tokenHandlers";
 
-const AuthRoutes = ["/login", "/register"];
-const RoleBasedRoutes = {
-  SUPER_ADMIN: /^\/dashboard\/admin/,
-  ADMIN: /^\/dashboard\/admin/,
-  GUIDE: /^\/dashboard\/guide/,
-  TOURIST: /^\/dashboard\/tourist/,
-};
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const accessToken = (await getCookie("accessToken")) || null;
 
-export default function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get("accessToken")?.value;
+  let userRole: UserRole | null = null;
 
-  // 1. If user is logged in and tries to access Auth routes, redirect to home/dashboard
-  if (accessToken && AuthRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (accessToken) {
+    try {
+      const verifiedToken: JwtPayload | string = jwt.verify(
+        accessToken,
+        process.env.JWT_SECRET as string
+      );
+
+      // Handle edge case where token is a string (invalid)
+      if (typeof verifiedToken === "string") {
+        throw new Error("Invalid token format");
+      }
+
+      userRole = verifiedToken.role;
+    } catch (error) {
+      // Token is expired or invalid: Clean up cookies and redirect to login
+      await deleteCookie("accessToken");
+      await deleteCookie("refreshToken");
+      if (process.env.NODE_ENV === "development") {
+        console.log(error);
+      }
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
   }
 
-  // 2. If user tries to access Private/Dashboard routes without login
-  if (!accessToken && pathname.startsWith("/dashboard")) {
-    // Redirect to login with the return url
+  const routerOwner = getRouteOwner(pathname);
+  const isAuth = isAuthRoute(pathname);
+
+  // Rule 1: Logged in user trying to access auth pages (login/signup)
+  if (accessToken && isAuth && userRole) {
     return NextResponse.redirect(
-      new URL(`/login?redirect=${pathname}`, request.url)
+      new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
     );
   }
 
-  // 3. Role Based Authorization
-  if (accessToken && pathname.startsWith("/dashboard")) {
-    let decoded: any;
-    try {
-      decoded = jwtDecode(accessToken);
-    } catch (e) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  // Rule 2: Open public routes
+  if (routerOwner === null) {
+    return NextResponse.next();
+  }
 
-    const role = decoded?.role; // SUPER_ADMIN, ADMIN, GUIDE, TOURIST
+  // If no valid token/role found for protected routes
+  if (!accessToken || !userRole) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
-    // Check if the route matches the role
-    if (role === "SUPER_ADMIN" || role === "ADMIN") {
-      // Admins can access admin routes
-      if (!RoleBasedRoutes.ADMIN.test(pathname)) {
-        return NextResponse.redirect(new URL("/dashboard/admin", request.url));
-      }
-    } else if (role === "GUIDE") {
-      if (!RoleBasedRoutes.GUIDE.test(pathname)) {
-        return NextResponse.redirect(new URL("/dashboard/guide", request.url));
-      }
-    } else if (role === "TOURIST") {
-      if (!RoleBasedRoutes.TOURIST.test(pathname)) {
-        return NextResponse.redirect(
-          new URL("/dashboard/tourist", request.url)
-        );
-      }
+  // Rule 3: Common protected routes
+  if (routerOwner === "COMMON") {
+    return NextResponse.next();
+  }
+
+  // Rule 4: Role-based protected routes
+  if (
+    routerOwner === "ADMIN" ||
+    routerOwner === "GUIDE" ||
+    routerOwner === "TOURIST"
+  ) {
+    // Allow SUPER_ADMIN to access ADMIN routes
+    if (
+      userRole !== routerOwner &&
+      !(routerOwner === "ADMIN" && userRole === "SUPER_ADMIN")
+    ) {
+      return NextResponse.redirect(
+        new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
+      );
     }
   }
 
@@ -63,5 +87,7 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/dashboard/:path*"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.well-known).*)",
+  ],
 };
