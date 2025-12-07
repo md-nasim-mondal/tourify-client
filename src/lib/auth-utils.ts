@@ -15,7 +15,7 @@ export const authRoutes = [
 ];
 
 export const commonProtectedRoutes: RouteConfig = {
-  exact: [],
+  exact: ["/profile/me", "/settings", "/change-password"],
   patterns: [/^\/dashboard(?!\/admin|\/guide|\/tourist)/], // /dashboard/* but not /dashboard/admin, /guide, /tourist
 };
 
