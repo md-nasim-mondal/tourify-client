@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
+import { envVariables } from "./../../lib/env";
 
 import { UserInfo } from "@/types/user.interface";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -15,7 +16,7 @@ export const getUserInfo = async (): Promise<UserInfo | null> => {
 
     const verifiedToken = jwt.verify(
       accessToken,
-      process.env.JWT_SECRET as string
+      envVariables.JWT_SECRET as string
     ) as JwtPayload;
 
     if (!verifiedToken) {

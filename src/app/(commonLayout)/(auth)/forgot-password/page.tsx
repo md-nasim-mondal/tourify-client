@@ -1,13 +1,13 @@
 "use server";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+import { envVariables } from "@/lib/env";
+
 
 async function forgotPasswordAction(formData: FormData) {
   "use server";
   const email = String(formData.get("email") || "");
   try {
-    const res = await fetch(`${API_URL}/auth/forgot-password`, {
+    const res = await fetch(`${envVariables.BASE_API_URL}/auth/forgot-password`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email }),

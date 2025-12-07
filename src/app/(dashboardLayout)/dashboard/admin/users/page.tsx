@@ -1,14 +1,14 @@
 "use server";
+import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 async function updateUserStatusAction(id: string, formData: FormData) {
   'use server'
   const token = (await cookies()).get("accessToken")?.value;
   const status = String(formData.get("status") || "ACTIVE");
   if (!token) return;
-  await fetch(`${API_URL}/users/${id}/status`, {
+  await fetch(`${envVariables.BASE_API_URL}/users/${id}/status`, {
     method: "PATCH",
     headers: { "content-type": "application/json", authorization: token },
     body: JSON.stringify({ status }),
@@ -20,7 +20,7 @@ async function updateUserRoleAction(id: string, formData: FormData) {
   const token = (await cookies()).get("accessToken")?.value;
   const role = String(formData.get("role") || "TOURIST");
   if (!token) return;
-  await fetch(`${API_URL}/users/${id}/role`, {
+  await fetch(`${envVariables.BASE_API_URL}/users/${id}/role`, {
     method: "PATCH",
     headers: { "content-type": "application/json", authorization: token },
     body: JSON.stringify({ role }),
@@ -29,7 +29,7 @@ async function updateUserRoleAction(id: string, formData: FormData) {
 
 export default async function AdminUsersPage() {
   const token = (await cookies()).get("accessToken")?.value;
-  const res = await fetch(`${API_URL}/users?limit=20`, {
+  const res = await fetch(`${envVariables.BASE_API_URL}/users?limit=20`, {
     cache: "no-store",
     headers: token ? { authorization: token } : undefined,
   });

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
+import { envVariables } from "./../../lib/env";
 
 import { parse } from "cookie";
 import { redirect } from "next/navigation";
@@ -83,7 +84,7 @@ export const loginUser = async (_currentState: any, formData: FormData) => {
 
     const verifiedToken: JwtPayload | string = jwt.verify(
       accessTokenObject.accessToken,
-      process.env.JWT_SECRET as string
+      envVariables.JWT_SECRET as string
     );
 
     if (typeof verifiedToken === "string") {

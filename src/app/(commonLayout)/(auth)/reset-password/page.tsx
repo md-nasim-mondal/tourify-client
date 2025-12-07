@@ -1,14 +1,13 @@
 "use server";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+import { envVariables } from "@/lib/env";
 
 async function resetPasswordAction(formData: FormData) {
   "use server";
   const token = String(formData.get("token") || "");
   const password = String(formData.get("password") || "");
   try {
-    const res = await fetch(`${API_URL}/auth/reset-password`, {
+    const res = await fetch(`${envVariables.BASE_API_URL}/auth/reset-password`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: token },
       body: JSON.stringify({ password }),

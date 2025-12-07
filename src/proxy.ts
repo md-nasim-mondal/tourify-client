@@ -1,3 +1,4 @@
+import { envVariables } from "./lib/env";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -19,7 +20,7 @@ export async function proxy(request: NextRequest) {
     try {
       const verifiedToken: JwtPayload | string = jwt.verify(
         accessToken,
-        process.env.JWT_SECRET as string
+        envVariables.JWT_SECRET as string
       );
 
       // Handle edge case where token is a string (invalid)

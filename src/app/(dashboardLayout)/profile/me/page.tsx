@@ -1,12 +1,12 @@
 "use server";
+import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 export default async function MyProfilePage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
-  const res = await fetch(`${API_URL}/users/me`, {
+  const res = await fetch(`${envVariables.BASE_API_URL}/users/me`, {
     cache: "no-store",
     headers: token ? { authorization: token } : undefined,
   });

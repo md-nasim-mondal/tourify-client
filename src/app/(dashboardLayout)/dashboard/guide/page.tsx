@@ -1,13 +1,12 @@
 "use server";
+import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 async function updateBookingAction(id: string, status: "CONFIRMED" | "CANCELLED") {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
   if (!token) return;
-  await fetch(`${API_URL}/bookings/${id}/status`, {
+  await fetch(`${envVariables.BASE_API_URL}/bookings/${id}/status`, {
     method: "PATCH",
     headers: {
       "content-type": "application/json",
@@ -20,7 +19,7 @@ async function updateBookingAction(id: string, status: "CONFIRMED" | "CANCELLED"
 export default async function GuideDashboardHomePage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
-  const res = await fetch(`${API_URL}/bookings`, {
+  const res = await fetch(`${envVariables.BASE_API_URL}/bookings`, {
     cache: "no-store",
     headers: token ? { authorization: token } : undefined,
   });

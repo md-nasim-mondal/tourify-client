@@ -1,16 +1,16 @@
 "use server";
+import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 export default async function AdminDashboardHomePage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
   const headers = token ? { authorization: token } : undefined;
   const [usersRes, listingsRes, bookingsRes] = await Promise.all([
-    fetch(`${API_URL}/users?limit=5`, { cache: "no-store", headers }),
-    fetch(`${API_URL}/listings?limit=5`, { cache: "no-store" }),
-    fetch(`${API_URL}/bookings?limit=5`, { cache: "no-store", headers }),
+    fetch(`${envVariables.BASE_API_URL}/users?limit=5`, { cache: "no-store", headers }),
+    fetch(`${envVariables.BASE_API_URL}/listings?limit=5`, { cache: "no-store" }),
+    fetch(`${envVariables.BASE_API_URL}/bookings?limit=5`, { cache: "no-store", headers }),
   ]);
   const usersJson = await usersRes.json();
   const listingsJson = await listingsRes.json();

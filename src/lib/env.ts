@@ -1,5 +1,5 @@
 const serverEnv = {
-  JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
+  JWT_SECRET: process.env.JWT_SECRET,
 };
 
 const clientEnv = {
@@ -8,7 +8,7 @@ const clientEnv = {
 
 // Validation function
 export function validateEnv() {
-  const requiredServerVars = ["JWT_SECRET_KEY"];
+  const requiredServerVars = ["JWT_SECRET"];
   const requiredClientVars = ["NEXT_PUBLIC_BASE_API_URL"];
 
   requiredServerVars.forEach((key) => {

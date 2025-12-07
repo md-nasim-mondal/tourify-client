@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
+import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
-
-const API_URL =
-  `${process.env.NEXT_PUBLIC_API_URL}/api/v1` || "http://localhost:5000/api/v1";
 
 export async function createBookingAction(
   listingId: string,
@@ -16,7 +14,7 @@ export async function createBookingAction(
     return { error: "Please login to book." };
   }
   try {
-    const res = await fetch(`${API_URL}/bookings`, {
+    const res = await fetch(`${envVariables.BASE_API_URL}/bookings`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -40,7 +38,7 @@ export default async function TourDetailsPage({
 }: {
   params: { id: string };
 }) {
-  const res = await fetch(`${API_URL}/listings/${params.id}`, {
+  const res = await fetch(`${envVariables.BASE_API_URL}/listings/${params.id}`, {
     cache: "no-store",
   });
   const json = await res.json();
@@ -142,7 +140,7 @@ export async function postReviewAction(listingId: string, formData: FormData) {
   const rating = Number(formData.get("rating") || 0);
   const comment = String(formData.get("comment") || "");
   try {
-    const res = await fetch(`${API_URL}/reviews`, {
+    const res = await fetch(`${envVariables.BASE_API_URL}/reviews`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: token },
       body: JSON.stringify({ listingId, rating, comment }),

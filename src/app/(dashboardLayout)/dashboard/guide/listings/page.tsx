@@ -1,7 +1,7 @@
 "use server";
+import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 async function createListingAction(formData: FormData) {
   'use server'
@@ -17,7 +17,7 @@ async function createListingAction(formData: FormData) {
   images.forEach((file) => multipart.append("images", file));
   multipart.append("data", JSON.stringify({ title, description, location, price }));
 
-  await fetch(`${API_URL}/listings`, {
+  await fetch(`${envVariables.BASE_API_URL}/listings`, {
     method: "POST",
     headers: { authorization: token },
     body: multipart,
@@ -25,7 +25,7 @@ async function createListingAction(formData: FormData) {
 }
 
 export default async function GuideListingsPage() {
-  const res = await fetch(`${API_URL}/listings`, { cache: "no-store" });
+  const res = await fetch(`${envVariables.BASE_API_URL}/listings`, { cache: "no-store" });
   const json = await res.json();
   const listings: { id: string; title: string; location: string; price: number }[] = json?.data || [];
 

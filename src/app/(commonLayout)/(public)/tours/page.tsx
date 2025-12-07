@@ -1,5 +1,4 @@
-const API_URL =
-  `${process.env.NEXT_PUBLIC_API_URL}/api/v1` || "http://localhost:5000/api/v1";
+import { envVariables } from "@/lib/env";
 
 type Listing = { id: string; title: string; location: string; price: number };
 
@@ -8,7 +7,7 @@ export default async function ToursPage({ searchParams }: { searchParams?: Recor
     Object.entries(searchParams || {}).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
   );
   const qs = new URLSearchParams(normalized).toString();
-  const res = await fetch(`${API_URL}/listings${qs ? `?${qs}` : ""}`, {
+  const res = await fetch(`${envVariables.BASE_API_URL}/listings${qs ? `?${qs}` : ""}`, {
     cache: "no-store",
   });
   const json = await res.json();
