@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { logoutUser } from "@/services/auth/logoutUser";
-import { Button } from "../ui/button";
 
 const LogoutButton = () => {
   const handleLogout = async () => {
