@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
+
 import { parse } from "cookie";
 import { redirect } from "next/navigation";
 import type { JwtPayload } from "jsonwebtoken";
@@ -60,7 +61,7 @@ export const loginUser = async (_currentState: any, formData: FormData) => {
     }
 
     if (!accessTokenObject || !refreshTokenObject) {
-      throw new Error("Tokens not found in cookies");
+      throw new Error("Tokens not found in cookies!");
     }
 
     await setCookie("accessToken", accessTokenObject.accessToken, {

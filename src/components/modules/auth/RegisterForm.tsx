@@ -2,11 +2,16 @@
 
 import { registerUser } from "@/services/auth/registerUser";
 import { useActionState, useEffect } from "react";
-import { Button } from "./ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "./ui/field";
-import { Input } from "./ui/input";
+import { Button } from "../../ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "../../ui/field";
+import { Input } from "../../ui/input";
 import { toast } from "sonner";
-import InputFieldError from "./shared/InputFieldError";
+import InputFieldError from "../../shared/InputFieldError";
 
 const RegisterForm = () => {
   const [state, formAction, isPending] = useActionState(registerUser, null);

@@ -1,4 +1,4 @@
-import RegisterForm from "@/components/RegisterForm"; // পাথ ঠিক করে নেবেন
+import RegisterForm from "@/components/modules/auth/RegisterForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
