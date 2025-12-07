@@ -56,7 +56,7 @@ export const registerUser = async (
       newFormData.append("file", formData.get("file") as Blob);
     }
 
-    const res = await serverFetch.post("/user/create-patient", {
+    const res = await serverFetch.post("/auth/register", {
       body: newFormData,
     });
 
