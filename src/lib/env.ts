@@ -3,7 +3,7 @@ const serverEnv = {
 };
 
 const clientEnv = {
-  BASE_API_URL: process.env.NEXT_PUBLIC_BASE_API_URL,
+  BASE_API_URL: `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1`,
 };
 
 // Validation function
