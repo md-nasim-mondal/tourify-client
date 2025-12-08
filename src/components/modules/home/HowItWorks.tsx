@@ -1,54 +1,59 @@
-import { Search, Calendar, Star } from "lucide-react";
+"use client";
+
+import { Search, Calendar, Users, Star } from "lucide-react";
 
 const steps = [
   {
-    icon: Search,
-    title: "Discover",
-    description: "Browse thousands of unique tours led by passionate local experts",
-    color: "from-blue-500 to-cyan-500",
+    icon: <Search className="h-12 w-12" />,
+    title: "Find Your Tour",
+    description: "Browse through thousands of curated tours and experiences.",
   },
   {
-    icon: Calendar,
-    title: "Book",
-    description: "Choose your preferred date and book instantly with secure payment",
-    color: "from-emerald-500 to-green-500",
+    icon: <Calendar className="h-12 w-12" />,
+    title: "Book Instantly",
+    description: "Select your dates and book with secure payment.",
   },
   {
-    icon: Star,
-    title: "Experience",
-    description: "Enjoy authentic local experiences and create unforgettable memories",
-    color: "from-amber-500 to-orange-500",
+    icon: <Users className="h-12 w-12" />,
+    title: "Meet Your Guide",
+    description: "Connect with your verified local guide before the tour.",
+  },
+  {
+    icon: <Star className="h-12 w-12" />,
+    title: "Enjoy & Review",
+    description: "Experience your tour and share your feedback.",
   },
 ];
 
-export default function HowItWorks() {
+const HowItWorks = () => {
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
-            How <span className="text-primary">Tourify</span> Works
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            How Tourify Works
           </h2>
-          <p className="mt-4 text-gray-600">
-            Three simple steps to your perfect local experience
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Simple steps to your perfect travel experience
           </p>
         </div>
-        
-        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div key={step.title} className="relative">
-              {/* Step Number */}
-              <div className="absolute -top-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-white text-lg font-bold text-primary shadow-lg">
-                {index + 1}
-              </div>
-              
-              {/* Card */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-8 pt-12 shadow-lg transition-all hover:shadow-xl">
-                <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br ${step.color}`}>
-                  <step.icon className="h-8 w-8 text-white" />
+            <div key={index} className="relative">
+              <div className="bg-white rounded-2xl p-8 shadow-lg h-full text-center">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6 text-blue-600">
+                  {step.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
-                <p className="mt-3 text-gray-600">{step.description}</p>
+                
+                <div className="absolute -top-3 -left-3 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  {index + 1}
+                </div>
+                
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600">{step.description}</p>
               </div>
             </div>
           ))}
@@ -56,4 +61,6 @@ export default function HowItWorks() {
       </div>
     </section>
   );
-}
+};
+
+export default HowItWorks;

@@ -1,95 +1,152 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Star, Quote } from "lucide-react";
+import { serverFetch } from "@/lib/server-fetch";
+import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
-const testimonials = [
-  {
-    name: "Sarah Johnson",
-    location: "London, UK",
-    text: "My food tour in Tokyo with Kenji was incredible! He showed us hidden gems we would never find on our own.",
-    rating: 5,
-    image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&auto=format&fit=crop",
-  },
-  {
-    name: "Michael Chen",
-    location: "San Francisco, USA",
-    text: "The historical tour in Rome was absolutely fascinating. Our guide's knowledge was impressive!",
-    rating: 5,
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop",
-  },
-  {
-    name: "Emma Wilson",
-    location: "Sydney, Australia",
-    text: "Bali temple tour was a spiritual experience. Our guide made us feel like family. Highly recommend!",
-    rating: 5,
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop",
-  },
-];
+interface Testimonial {
+  id: string;
+  name: string;
+  avatar: string;
+  location: string;
+  rating: number;
+  comment: string;
+  date: string;
+  tour: string;
+}
 
-export default function Testimonials() {
+const Testimonials = () => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      setLoading(true);
+      const response = await serverFetch.get("/testimonials");
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTestimonials(data.data || generateMockTestimonials());
+      } else {
+        setTestimonials(generateMockTestimonials());
+      }
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+      setTestimonials(generateMockTestimonials());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateMockTestimonials = (): Testimonial[] => [
+    {
+      id: "1",
+      name: "Jennifer Lee",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&auto=format&fit=crop",
+      location: "San Francisco, USA",
+      rating: 5,
+      comment: "The food tour in Tokyo was incredible! Our guide Kenji showed us hidden gems we would never have found on our own. The sushi making class was a highlight!",
+      date: "2024-01-15",
+      tour: "Tokyo Food Adventure",
+    },
+    {
+      id: "2",
+      name: "Michael Brown",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop",
+      location: "London, UK",
+      rating: 5,
+      comment: "Sarah's historical tour of Paris was absolutely fascinating. Her knowledge of French history brought every location to life. Highly recommend!",
+      date: "2024-01-10",
+      tour: "Paris History Walk",
+    },
+    {
+      id: "3",
+      name: "Sophia Garcia",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&auto=format&fit=crop",
+      location: "Madrid, Spain",
+      rating: 4,
+      comment: "Beautiful hike in the Swiss Alps with breathtaking views. Our guide was very professional and ensured our safety throughout. Amazing experience!",
+      date: "2024-01-05",
+      tour: "Swiss Alpine Trek",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
-            Traveler <span className="text-primary">Testimonials</span>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Traveler Stories
           </h2>
-          <p className="mt-4 text-gray-600">
-            See what our travelers say about their experiences
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            See what our travelers are saying about their experiences
           </p>
         </div>
-        
-        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+
+        <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((testimonial) => (
-            <div key={testimonial.name} className="relative">
-              <Quote className="absolute -top-4 left-6 h-8 w-8 text-primary/20" />
-              <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
-                <div className="flex items-center gap-1">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+            <Card key={testimonial.id} className="relative overflow-hidden">
+              <div className="absolute top-6 right-6 text-gray-200">
+                <Quote className="h-12 w-12" />
+              </div>
+              
+              <CardContent className="p-8">
+                <div className="flex items-center mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${
+                        i < testimonial.rating
+                          ? "text-yellow-500 fill-yellow-500"
+                          : "text-gray-300"
+                      }`}
+                    />
                   ))}
                 </div>
-                <p className="mt-6 text-gray-600 italic">&ldquo;{testimonial.text}&rdquo;</p>
-                <div className="mt-8 flex items-center gap-4">
-                  <div className="relative h-12 w-12 overflow-hidden rounded-full">
+
+                <p className="text-gray-700 mb-6 italic">&quot;{testimonial.comment}&quot;</p>
+
+                <div className="flex items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
                     <Image
-                      src={testimonial.image}
+                      src={testimonial.avatar}
                       alt={testimonial.name}
-                      fill
+                      width={48}
+                      height={48}
                       className="object-cover"
-                      sizes="48px"
                     />
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-500">{testimonial.location}</p>
+                    <p className="text-sm text-gray-600">{testimonial.location}</p>
+                    <p className="text-sm text-gray-500">{testimonial.tour}</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
-        </div>
-        
-        <div className="mt-12 rounded-2xl bg-linear-to-r from-gray-900 to-gray-800 p-8 text-white">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            <div className="text-center">
-              <div className="text-4xl font-bold">10,000+</div>
-              <div className="mt-2 text-gray-300">Happy Travelers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold">500+</div>
-              <div className="mt-2 text-gray-300">Local Guides</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold">4.8</div>
-              <div className="mt-2 text-gray-300">Average Rating</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold">150+</div>
-              <div className="mt-2 text-gray-300">Cities Worldwide</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default Testimonials;

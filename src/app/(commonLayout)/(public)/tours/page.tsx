@@ -1,62 +1,57 @@
-import { envVariables } from "@/lib/env";
+import ToursListing from "@/components/modules/tours/ToursListing";
+import { Metadata } from "next";
+import { Suspense } from "react";
 
-type Listing = { id: string; title: string; location: string; price: number };
+export const metadata: Metadata = {
+  title: "Tours - Tourify",
+  description: "Browse and book amazing tours with local guides",
+};
 
-export default async function ToursPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
-  const normalized = Object.fromEntries(
-    Object.entries(searchParams || {}).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
-  );
-  const qs = new URLSearchParams(normalized).toString();
-  const res = await fetch(`${envVariables.BASE_API_URL}/listings${qs ? `?${qs}` : ""}`, {
-    cache: "no-store",
-  });
-  const json = await res.json();
-  const items: Listing[] = json?.data || [];
+interface ToursPageProps {
+  searchParams: Promise<{
+    search?: string;
+    category?: string;
+    location?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    duration?: string;
+    sort?: string;
+    page?: string;
+  }>;
+}
+
+export default async function ToursPage({ searchParams }: ToursPageProps) {
+  const params = await searchParams;
 
   return (
-    <div className='max-w-6xl mx-auto py-8 px-4'>
-      <h1 className='text-2xl font-semibold mb-4'>Explore Tours</h1>
-      <form method='GET' className='grid grid-cols-1 md:grid-cols-4 gap-3 mb-6'>
-        <input
-          name='searchTerm'
-          placeholder='Search'
-          className='rounded border px-3 py-2'
-        />
-        <input
-          name='location'
-          placeholder='Location'
-          className='rounded border px-3 py-2'
-        />
-        <input
-          name='minPrice'
-          placeholder='Min Price'
-          className='rounded border px-3 py-2'
-        />
-        <input
-          name='maxPrice'
-          placeholder='Max Price'
-          className='rounded border px-3 py-2'
-        />
-        <button
-          type='submit'
-          className='md:col-span-4 rounded bg-black text-white py-2'>
-          Filter
-        </button>
-      </form>
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-        {items.map((it) => (
-          <a
-            key={it.id}
-            href={`/tours/${it.id}`}
-            className='border rounded overflow-hidden'>
-            <div className='aspect-video bg-zinc-100' />
-            <div className='p-3'>
-              <h3 className='font-semibold'>{it.title}</h3>
-              <p className='text-sm text-zinc-600'>{it.location}</p>
-              <p className='mt-2 font-medium'>${it.price}</p>
-            </div>
-          </a>
-        ))}
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Discover Amazing Tours
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl">
+            Book authentic experiences with local guides around the world
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <Suspense fallback={<ToursLoading />}>
+          <ToursListing searchParams={params} />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+
+function ToursLoading() {
+  return (
+    <div className="py-12">
+      <div className="flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     </div>
   );

@@ -1,57 +1,99 @@
+"use client";
+
+import { Camera, Utensils, Mountain, Castle, Palmtree, Coffee, Waves, TreePine } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
-import { Utensils, Castle, Mountain, Palette, Moon, ShoppingBag } from "lucide-react";
 
 const categories = [
-  { icon: Utensils, name: "Food & Drink", count: 1245, color: "bg-red-500" },
-  { icon: Castle, name: "History & Culture", count: 892, color: "bg-amber-500" },
-  { icon: Mountain, name: "Adventure", count: 567, color: "bg-emerald-500" },
-  { icon: Palette, name: "Art & Photography", count: 432, color: "bg-purple-500" },
-  { icon: Moon, name: "Nightlife", count: 321, color: "bg-blue-500" },
-  { icon: ShoppingBag, name: "Shopping", count: 278, color: "bg-pink-500" },
+  {
+    icon: <Camera className="h-8 w-8" />,
+    title: "Photography Tours",
+    count: 45,
+    color: "bg-purple-100 text-purple-600",
+  },
+  {
+    icon: <Utensils className="h-8 w-8" />,
+    title: "Food & Dining",
+    count: 68,
+    color: "bg-red-100 text-red-600",
+  },
+  {
+    icon: <Mountain className="h-8 w-8" />,
+    title: "Adventure",
+    count: 92,
+    color: "bg-green-100 text-green-600",
+  },
+  {
+    icon: <Castle className="h-8 w-8" />,
+    title: "History & Culture",
+    count: 57,
+    color: "bg-yellow-100 text-yellow-600",
+  },
+  {
+    icon: <Palmtree className="h-8 w-8" />,
+    title: "Beach & Relax",
+    count: 34,
+    color: "bg-blue-100 text-blue-600",
+  },
+  {
+    icon: <Coffee className="h-8 w-8" />,
+    title: "Local Experiences",
+    count: 78,
+    color: "bg-pink-100 text-pink-600",
+  },
+  {
+    icon: <Waves className="h-8 w-8" />,
+    title: "Water Activities",
+    count: 41,
+    color: "bg-cyan-100 text-cyan-600",
+  },
+  {
+    icon: <TreePine className="h-8 w-8" />,
+    title: "Hiking & Trekking",
+    count: 63,
+    color: "bg-orange-100 text-orange-600",
+  },
 ];
 
-export default function Categories() {
+const Categories = () => {
   return (
-    <section className="py-16 md:py-24 bg-linear-to-b from-gray-50 to-white">
+    <section className="py-20">
       <div className="container mx-auto px-4">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
-            Explore by <span className="text-primary">Category</span>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Explore By Category
           </h2>
-          <p className="mt-4 text-gray-600">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Find tours that match your interests
           </p>
         </div>
-        
-        <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {categories.map((category) => (
-            <Link
-              key={category.name}
-              href={`/category/${category.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
-              className="group rounded-2xl bg-white p-6 text-center shadow-lg transition-all hover:shadow-xl hover:-translate-y-1"
-            >
-              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${category.color}`}>
-                <category.icon className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="mt-4 font-semibold text-gray-900">{category.name}</h3>
-              <p className="mt-2 text-sm text-gray-500">{category.count.toLocaleString()} tours</p>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {categories.map((category, index) => (
+            <Link key={index} href={`/tours?category=${category.title.toLowerCase()}`}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className={`${category.color} p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform`}>
+                      {category.icon}
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      {category.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 text-sm">
+                      {category.count} tours
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
-        </div>
-        
-        <div className="mt-12 rounded-2xl bg-linear-to-r from-primary to-secondary p-8 text-center text-white">
-          <h3 className="text-2xl font-bold">Can&apos;t find what you&apos;re looking for?</h3>
-          <p className="mt-2 opacity-90">
-            Our guides can create custom tours just for you
-          </p>
-          <Link
-            href="/custom-tour"
-            className="mt-6 inline-block rounded-full bg-white px-8 py-3 font-medium text-primary hover:bg-gray-100"
-          >
-            Request Custom Tour
-          </Link>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default Categories;
