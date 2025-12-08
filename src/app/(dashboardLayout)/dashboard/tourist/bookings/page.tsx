@@ -2,7 +2,6 @@
 import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 
-
 async function cancelBookingAction(id: string) {
   "use server";
   const cookieStore = await cookies();
@@ -23,11 +22,14 @@ async function payBookingAction(id: string) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
   if (!token) return;
-  const initRes = await fetch(`${envVariables.BASE_API_URL}/payments/initiate`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ bookingId: id }),
-  });
+  const initRes = await fetch(
+    `${envVariables.BASE_API_URL}/payments/initiate`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: token },
+      body: JSON.stringify({ bookingId: id }),
+    }
+  );
   const initJson = await initRes.json();
   const paymentId: string | undefined = initJson?.data?.id;
   if (!paymentId) return;
@@ -38,54 +40,24 @@ async function payBookingAction(id: string) {
   });
 }
 
-export default async function TouristDashboardHomePage() {
+export default async function TouristBookingsPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
-  const [bookingsRes, paymentsRes] = await Promise.all([
-    fetch(`${envVariables.BASE_API_URL}/bookings`, {
-      cache: "no-store",
-      headers: token ? { authorization: token } : undefined,
-    }),
-    fetch(`${envVariables.BASE_API_URL}/payments`, {
-      cache: "no-store",
-      headers: token ? { authorization: token } : undefined,
-    }),
-  ]);
-  const json = await bookingsRes.json();
-  const paymentsJson = await paymentsRes.json();
+  const res = await fetch(`${envVariables.BASE_API_URL}/bookings`, {
+    cache: "no-store",
+    headers: token ? { authorization: token } : undefined,
+  });
+  const json = await res.json();
   const bookings: {
     id: string;
     status: string;
     date: string;
     listing: { title: string };
   }[] = json?.data || [];
-  const payments: { id: string; status: string; amount?: number }[] = paymentsJson?.data || [];
-  const upcoming = bookings.filter((b) => b.status === "CONFIRMED");
-  const pending = bookings.filter((b) => b.status === "PENDING");
-  const spent = payments.filter((p) => p.status === "PAID").reduce((sum, p) => sum + (p.amount || 0), 0);
 
   return (
     <div className='max-w-6xl mx-auto py-8 px-4'>
-      <h1 className='text-2xl font-semibold mb-4'>Tourist Dashboard</h1>
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>Upcoming</h2>
-          <p className='text-2xl font-bold'>{upcoming.length}</p>
-        </div>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>Pending</h2>
-          <p className='text-2xl font-bold'>{pending.length}</p>
-        </div>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>All Bookings</h2>
-          <p className='text-2xl font-bold'>{bookings.length}</p>
-        </div>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>Total Spent</h2>
-          <p className='text-2xl font-bold'>${spent}</p>
-        </div>
-      </div>
-      <h2 className='text-xl font-semibold mb-3'>My Trips</h2>
+      <h1 className='text-2xl font-semibold mb-4'>My Bookings</h1>
       <div className='space-y-3'>
         {bookings.map((b) => (
           <form

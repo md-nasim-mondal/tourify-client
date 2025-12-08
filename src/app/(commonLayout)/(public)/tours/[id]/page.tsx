@@ -38,9 +38,12 @@ export default async function TourDetailsPage({
 }: {
   params: { id: string };
 }) {
-  const res = await fetch(`${envVariables.BASE_API_URL}/listings/${params.id}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${envVariables.BASE_API_URL}/listings/${params.id}`,
+    {
+      cache: "no-store",
+    }
+  );
   const json = await res.json();
   const tour = json?.data;
 
