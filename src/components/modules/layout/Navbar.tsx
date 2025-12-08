@@ -1,293 +1,171 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { SearchIcon, MapPin, User, LogOut, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Menu, X, User, Settings, Home } from "lucide-react";
+import { getUserInfo } from "@/services/auth/getUserInfo";
+import LogoutButton from "@/components/modules/auth/LogoutButton";
 
-export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
-  const router = useRouter();
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Check if user is logged in from localStorage or cookies
-    const token =
-      localStorage.getItem("accessToken") ||
-      document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("accessToken="))
-        ?.split("=")[1];
+    const fetchUser = async () => {
+      const user = await getUserInfo();
+      setUserInfo(user);
+    };
+    fetchUser();
+  }, [pathname]);
 
-    if (token) {
-      try {
-        // Parse JWT token (simplified - in production use proper JWT decoding)
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        // Batch state updates to avoid cascading renders
-        Promise.resolve().then(() => {
-          setRole(payload.role || null);
-          setUserName(payload.name || payload.email?.split("@")[0] || null);
-          setIsLoggedIn(true);
-        });
-      } catch {
-        Promise.resolve().then(() => setIsLoggedIn(false));
-      }
-    } else {
-      Promise.resolve().then(() => setIsLoggedIn(false));
-    }
-  }, []);
-
-  const handleLogout = () => {
-    // Clear authentication data
-    localStorage.removeItem("accessToken");
-    document.cookie =
-      "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-    // Reset state
-    setIsLoggedIn(false);
-    setRole(null);
-    setUserName(null);
-
-    // Redirect to home
-    router.push("/");
-    router.refresh();
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const navLinks = [
+    { href: "/", label: "Home", icon: <Home size={18} /> },
+    { href: "/tours", label: "Tours" },
+    { href: "/guides", label: "Guides" },
+    { href: "/destinations", label: "Destinations" },
+    { href: "/about", label: "About" },
+  ];
 
   return (
-    <nav className='sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60'>
+    <nav className='sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b'>
       <div className='container mx-auto px-4'>
-        <div className='flex h-16 items-center justify-between'>
+        <div className='flex items-center justify-between h-16'>
           {/* Logo */}
-          <Link href='/' className='flex items-center gap-2'>
-            <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-primary to-secondary'>
-              <MapPin className='h-6 w-6 text-white' />
+          <Link href='/' className='flex items-center space-x-2'>
+            <div className='h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center'>
+              <span className='text-white font-bold text-sm'>T</span>
             </div>
-            <span className='text-xl font-bold tracking-tight text-gray-900'>
-              <span className='text-primary'>Tour</span>ify
-            </span>
+            <span className='text-xl font-bold text-gray-800'>Tourify</span>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className='hidden md:flex items-center gap-6'>
-            <Link
-              href='/tours'
-              className='text-sm font-medium text-gray-700 hover:text-primary transition-colors'>
-              Explore Tours
-            </Link>
-            <Link
-              href='/guides'
-              className='text-sm font-medium text-gray-700 hover:text-primary transition-colors'>
-              Find Guides
-            </Link>
-            <Link
-              href='/destinations'
-              className='text-sm font-medium text-gray-700 hover:text-primary transition-colors'>
-              Destinations
-            </Link>
-            {!isLoggedIn && (
+          {/* Desktop Navigation */}
+          <div className='hidden md:flex items-center space-x-8'>
+            {navLinks.map((link) => (
               <Link
-                href='/become-guide'
-                className='text-sm font-medium text-gray-700 hover:text-primary transition-colors'>
-                Become a Guide
+                key={link.href}
+                href={link.href}
+                className={`text-gray-600 hover:text-blue-600 transition-colors ${
+                  pathname === link.href ? "text-blue-600 font-medium" : ""
+                }`}>
+                {link.label}
               </Link>
-            )}
+            ))}
           </div>
 
-          {/* Right Side Actions */}
-          <div className='flex items-center gap-3'>
-            {/* Search Button */}
-            <Button
-              variant='ghost'
-              size='icon'
-              asChild
-              className='hidden sm:flex'>
-              <Link href='/tours'>
-                <SearchIcon className='h-5 w-5' />
-              </Link>
-            </Button>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={toggleMenu}
-              className='md:hidden'>
-              {isMenuOpen ? (
-                <X className='h-5 w-5' />
-              ) : (
-                <Menu className='h-5 w-5' />
-              )}
-            </Button>
-
-            {/* Auth/User Section (Desktop) */}
-            {!isLoggedIn ? (
-              <div className='hidden md:flex items-center gap-2'>
-                <Button variant='ghost' asChild>
-                  <Link href='/login'>Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link href='/register'>Sign Up</Link>
-                </Button>
+          {/* Desktop Auth Buttons */}
+          <div className='hidden md:flex items-center space-x-4'>
+            {userInfo ? (
+              <div className='flex items-center space-x-4'>
+                <div className='flex items-center space-x-2'>
+                  <div className='h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center'>
+                    <User size={16} className='text-blue-600' />
+                  </div>
+                  <span className='text-sm font-medium'>{userInfo.name}</span>
+                </div>
+                <Link href='/dashboard'>
+                  <Button variant='outline' size='sm'>
+                    Dashboard
+                  </Button>
+                </Link>
+                <LogoutButton />
               </div>
             ) : (
-              <div className='hidden md:flex items-center gap-3'>
-                {/* Role-Based Links */}
-                {role === "TOURIST" && (
-                  <Button variant='outline' size='sm' asChild>
-                    <Link href='/dashboard/tourist'>My Bookings</Link>
+              <>
+                <Link href='/login'>
+                  <Button variant='outline' size='sm'>
+                    Sign In
                   </Button>
-                )}
-                {role === "GUIDE" && (
-                  <Button variant='outline' size='sm' asChild>
-                    <Link href='/dashboard/guide'>Dashboard</Link>
-                  </Button>
-                )}
-                {(role === "ADMIN" || role === "SUPER_ADMIN") && (
-                  <Button variant='outline' size='sm' asChild>
-                    <Link href='/dashboard/admin'>Admin Panel</Link>
-                  </Button>
-                )}
-
-                {/* User Profile Dropdown */}
-                <div className='relative group'>
-                  <Button variant='ghost' size='icon' className='rounded-full'>
-                    <User className='h-5 w-5' />
-                  </Button>
-                  <div className='absolute right-0 top-full mt-2 w-48 rounded-lg border bg-white p-2 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50'>
-                    <Link
-                      href='/profile/me'
-                      className='flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-gray-100'>
-                      <User className='h-4 w-4' />
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className='flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-red-600 hover:bg-red-50'>
-                      <LogOut className='h-4 w-4' />
-                      Logout
-                    </button>
-                  </div>
-                </div>
-
-                {/* User Name */}
-                {userName && (
-                  <span className='text-sm font-medium text-gray-700'>
-                    Hi, {userName}!
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Mobile Auth Buttons (When not logged in) */}
-            {!isLoggedIn && (
-              <div className='flex md:hidden items-center gap-2'>
-                <Button variant='ghost' size='sm' asChild>
-                  <Link href='/login'>Login</Link>
-                </Button>
-              </div>
+                </Link>
+                <Link href='/register'>
+                  <Button size='sm'>Sign Up</Button>
+                </Link>
+              </>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <button className='md:hidden' onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
+        {isOpen && (
           <div className='md:hidden border-t py-4'>
-            <div className='flex flex-col gap-4'>
-              <Link
-                href='/tours'
-                className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                onClick={() => setIsMenuOpen(false)}>
-                Explore Tours
-              </Link>
-              <Link
-                href='/guides'
-                className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                onClick={() => setIsMenuOpen(false)}>
-                Find Guides
-              </Link>
-              <Link
-                href='/destinations'
-                className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                onClick={() => setIsMenuOpen(false)}>
-                Destinations
-              </Link>
+            <div className='space-y-4'>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`block py-2 px-4 rounded-lg transition-colors ${
+                    pathname === link.href
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => setIsOpen(false)}>
+                  <div className='flex items-center space-x-2'>
+                    {link.icon}
+                    <span>{link.label}</span>
+                  </div>
+                </Link>
+              ))}
 
-              {!isLoggedIn ? (
-                <>
-                  <Link
-                    href='/become-guide'
-                    className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                    onClick={() => setIsMenuOpen(false)}>
-                    Become a Guide
-                  </Link>
-                  <Link
-                    href='/register'
-                    className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                    onClick={() => setIsMenuOpen(false)}>
-                    Sign Up
-                  </Link>
-                </>
-              ) : (
-                <>
-                  {role === "TOURIST" && (
+              <div className='pt-4 border-t space-y-3'>
+                {userInfo ? (
+                  <>
+                    <div className='px-4 py-2 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center space-x-2'>
+                        <div className='h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center'>
+                          <User size={16} className='text-blue-600' />
+                        </div>
+                        <div>
+                          <p className='font-medium'>{userInfo.name}</p>
+                          <p className='text-xs text-gray-500'>
+                            {userInfo.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                     <Link
-                      href='/dashboard/tourist'
-                      className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                      onClick={() => setIsMenuOpen(false)}>
-                      My Bookings
+                      href='/dashboard'
+                      className='block py-2 px-4 rounded-lg hover:bg-gray-50'
+                      onClick={() => setIsOpen(false)}>
+                      <div className='flex items-center space-x-2'>
+                        <Settings size={18} />
+                        <span>Dashboard</span>
+                      </div>
                     </Link>
-                  )}
-                  {role === "GUIDE" && (
+                    <div className='px-4'>
+                      <LogoutButton />
+                    </div>
+                  </>
+                ) : (
+                  <>
                     <Link
-                      href='/dashboard/guide'
-                      className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                      onClick={() => setIsMenuOpen(false)}>
-                      Dashboard
+                      href='/login'
+                      className='block py-2 px-4 rounded-lg hover:bg-gray-50'
+                      onClick={() => setIsOpen(false)}>
+                      Sign In
                     </Link>
-                  )}
-                  {(role === "ADMIN" || role === "SUPER_ADMIN") && (
                     <Link
-                      href='/dashboard/admin'
-                      className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                      onClick={() => setIsMenuOpen(false)}>
-                      Admin Panel
+                      href='/register'
+                      className='block py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700'
+                      onClick={() => setIsOpen(false)}>
+                      Sign Up
                     </Link>
-                  )}
-                  <Link
-                    href='/profile/me'
-                    className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg'
-                    onClick={() => setIsMenuOpen(false)}>
-                    Profile
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMenuOpen(false);
-                    }}
-                    className='px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg text-left'>
-                    Logout
-                  </button>
-                </>
-              )}
-
-              {/* User Info in Mobile Menu */}
-              {isLoggedIn && userName && (
-                <div className='px-4 py-2 border-t'>
-                  <p className='text-sm text-gray-500'>Logged in as:</p>
-                  <p className='font-medium'>{userName}</p>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
       </div>
     </nav>
   );
-}
+};
+
+export default Navbar;

@@ -6,18 +6,43 @@ import { cookies } from "next/headers";
 export const setCookie = async (
   key: string,
   value: string,
-  options: Partial<ResponseCookie>
+  options: Partial<ResponseCookie> = {}
 ) => {
   const cookieStore = await cookies();
-  cookieStore.set(key, value, options);
+  
+  const defaultOptions: Partial<ResponseCookie> = {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+  };
+
+  cookieStore.set(key, value, { ...defaultOptions, ...options });
 };
 
-export const getCookie = async (key: string) => {
-  const cookieStore = await cookies();
-  return cookieStore.get(key)?.value || null;
+export const getCookie = async (key: string): Promise<string | null> => {
+  try {
+    const cookieStore = await cookies();
+    const cookie = cookieStore.get(key);
+    return cookie?.value || null;
+  } catch (error) {
+    console.error("Error getting cookie:", error);
+    return null;
+  }
 };
 
 export const deleteCookie = async (key: string) => {
-  const cookieStore = await cookies();
-  cookieStore.delete(key);
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete(key);
+  } catch (error) {
+    console.error("Error deleting cookie:", error);
+  }
+};
+
+export const clearAuthCookies = async () => {
+  await deleteCookie("accessToken");
+  await deleteCookie("refreshToken");
+  await deleteCookie("userRole");
+  await deleteCookie("userEmail");
 };

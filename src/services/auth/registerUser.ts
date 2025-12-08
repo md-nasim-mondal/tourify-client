@@ -18,28 +18,17 @@ export const registerUser = async (
       confirmPassword: formData.get("confirmPassword"),
     };
 
-    // const validatedFields = registerValidationSchema.safeParse(validationData);
-
-    // if (!validatedFields.success) {
-    //   return {
-    //     success: false,
-    //     errors: validatedFields.error.issues.map((issue) => {
-    //       return {
-    //         field: issue.path[0],
-    //         message: issue.message,
-    //       };
-    //     }),
-    //   };
-    // }
-
-    if (zodValidator(payload, registerUserValidationSchema).success === false) {
-      return zodValidator(payload, registerUserValidationSchema);
-    }
-
-    const validatedPayload: any = zodValidator(
+    // Validate with zod
+    const validationResult = zodValidator(
       payload,
       registerUserValidationSchema
-    ).data;
+    );
+
+    if (validationResult.success === false) {
+      return validationResult;
+    }
+
+    const validatedPayload: any = validationResult.data;
 
     const registerData = {
       name: validatedPayload.name,
@@ -49,11 +38,40 @@ export const registerUser = async (
     };
 
     const newFormData = new FormData();
-
     newFormData.append("data", JSON.stringify(registerData));
 
-    if (formData.get("file")) {
-      newFormData.append("file", formData.get("file") as Blob);
+    // Handle profile picture upload
+    const profilePicture = formData.get("profilePicture") as File;
+    if (profilePicture && profilePicture.size > 0) {
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedTypes.includes(profilePicture.type)) {
+        return {
+          success: false,
+          errors: [
+            {
+              field: "profilePicture",
+              message: "Only JPG, PNG, and WebP images are allowed",
+            },
+          ],
+        };
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (profilePicture.size > maxSize) {
+        return {
+          success: false,
+          errors: [
+            {
+              field: "profilePicture",
+              message: "Image size should be less than 5MB",
+            },
+          ],
+        };
+      }
+
+      newFormData.append("profilePicture", profilePicture);
     }
 
     const res = await serverFetch.post("/auth/register", {
@@ -63,7 +81,17 @@ export const registerUser = async (
     const result = await res.json();
 
     if (result.success) {
-      await loginUser(_currentState, formData);
+      // Auto login after successful registration
+      const loginFormData = new FormData();
+      loginFormData.append("email", validatedPayload.email);
+      loginFormData.append("password", validatedPayload.password);
+      
+      await loginUser(_currentState, loginFormData);
+      
+      return {
+        success: true,
+        message: "Account created successfully! Redirecting...",
+      };
     }
 
     return result;
@@ -72,13 +100,23 @@ export const registerUser = async (
     if (err?.digest?.startsWith("NEXT_REDIRECT")) {
       throw err;
     }
-    console.log(err);
+    
+    console.error("Registration error:", err);
+    
+    // Handle specific error types
+    if (err.name === "NetworkError") {
+      return {
+        success: false,
+        message: "Network error. Please check your connection.",
+      };
+    }
+    
     return {
       success: false,
       message: `${
         process.env.NODE_ENV === "development"
           ? err.message
-          : "Registration Failed. Please try again!"
+          : "Registration failed. Please try again!"
       }`,
     };
   }
