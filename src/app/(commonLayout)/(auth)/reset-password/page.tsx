@@ -1,4 +1,5 @@
 import ResetPasswordForm from "@/components/modules/auth/ResetPasswordForm";
+import { Suspense } from "react";
 import {
   Card,
   CardContent,
@@ -33,7 +34,9 @@ const ResetPasswordPage = ({ searchParams }: ResetPasswordPageProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResetPasswordForm token={token} />
+            <Suspense fallback={<div className='py-6 text-center'>Loading...</div>}>
+              <ResetPasswordForm token={token} />
+            </Suspense>
           </CardContent>
         </Card>
       </div>

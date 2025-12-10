@@ -1,7 +1,7 @@
 "use client";
 
 import { registerUser } from "@/services/auth/registerUser";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "../../ui/button";
 import {
   Field,
@@ -17,6 +17,7 @@ import { Label } from "../../ui/label";
 
 const RegisterForm = () => {
   const [state, formAction, isPending] = useActionState(registerUser, null);
+  const [selectedRole, setSelectedRole] = useState("TOURIST"); // Default role
 
   useEffect(() => {
     if (state && !state.success && state.message) {
@@ -93,8 +94,9 @@ const RegisterForm = () => {
           <Field>
             <FieldLabel>Register as</FieldLabel>
             <RadioGroup 
-              defaultValue="TOURIST" 
+              defaultValue={selectedRole} 
               name="role" 
+              onValueChange={setSelectedRole} // Update state on change
               className="flex flex-col space-y-2"
             >
               <div className="flex items-center space-x-2">
@@ -115,7 +117,7 @@ const RegisterForm = () => {
         </div>
         
         {/* Guide Specific Fields (Conditional) */}
-        <div id="guideFields" className="hidden mt-4 space-y-4">
+        <div id="guideFields" className={selectedRole === "GUIDE" ? "mt-4 space-y-4" : "hidden mt-4 space-y-4"}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field>
               <FieldLabel htmlFor='expertise'>Expertise</FieldLabel>
@@ -184,5 +186,4 @@ const RegisterForm = () => {
     </form>
   );
 };
-
 export default RegisterForm;

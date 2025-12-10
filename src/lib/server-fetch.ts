@@ -1,5 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCookie, setCookie } from "@/services/auth/tokenHandlers";
 import { envVariables } from "./env";
+
+class FetchError extends Error {
+  statusCode: number;
+  data: any;
+
+  constructor(message: string, statusCode: number, data: any) {
+    super(message);
+    this.statusCode = statusCode;
+    this.data = data;
+    this.name = "FetchError";
+  }
+}
 
 let isRefreshing = false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

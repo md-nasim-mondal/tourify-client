@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Local Guide Platform (Client)
 
-## Getting Started
+Welcome to the client-side of the Local Guide Platform, designed to connect travelers with passionate local guides for authentic, personalized experiences.
 
-First, run the development server:
+**GitHub Client Repo:** [Your GitHub Client Repo Link]
+**Live Deployment:** [Your Client Live Deployment Link]
+
+---
+
+## Features
+
+- **User Authentication:** Secure registration and login for Tourists, Guides, and Admins using JWT.
+- **Role-Based Dashboards:** Separate, feature-rich dashboards for each user role (Tourist, Guide, Admin).
+- **Profile Management:** Users can update their profile information, including bio and profile picture.
+- **Tour Listing Management:** Guides can create, update, and delete their tour listings with detailed information and images.
+- **Advanced Search & Filtering:** Tourists can easily find tours by destination, category, price range, and language.
+- **Complete Booking System:** A full booking workflow where tourists can request tours and guides can accept or decline them.
+- **Review & Rating System:** Tourists can leave reviews and ratings on tours they have completed.
+- **Secure Payment Integration:** Seamless payment flow powered by Stripe/SSLCommerz for booking confirmations.
+- **Admin Management:** Admins have a global overview of the platform with capabilities to manage users, listings, and bookings.
+- **Global Error Handling:** Friendly error messages (toasts, alerts) for a smooth user experience.
+- **Global Not Found Page:** Custom 404 page for non-existent routes.
+
+---
+
+## Technology Stack
+
+- **Framework:** Next.js (with Server Components and Server Actions)
+- **Styling:** Tailwind CSS
+- **UI Components:** Shadcn/UI
+- **State Management:** React Hooks (`useState`, `useActionState`)
+- **Form Validation:** Zod
+- **Deployment:** Vercel
+- **Others:** Any other required npm packages will be listed in `package.json`.
+
+---
+
+## Setup & Usage
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm or yarn
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd tourify-client
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Set Up Environment Variables
+
+Create a `.env.local` file in the root of the `tourify-client` directory and add the following variables.
+
+```env
+# URL of the backend server
+NEXT_PUBLIC_BASE_API_URL=<Your Backend Live URL or http://localhost:5000/api/v1>
+
+# The base URL of this client application (for payment redirects, etc.)
+NEXT_PUBLIC_CLIENT_URL=<Your Client Live URL or http://localhost:3000>
+
+# JWT Secret for verifying tokens (must match the server's secret)
+JWT_SECRET=<Your JWT Secret - must match server's JWT secret>
+```
+
+### 4. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Admin Credentials
 
-## Learn More
+To access the admin dashboard and its features, use the following credentials:
 
-To learn more about Next.js, take a look at the following resources:
+- **Email:** `admin@tourify.com`
+- **Password:** `super.secret.password`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Video Explanation
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Your Video Explanation Link]

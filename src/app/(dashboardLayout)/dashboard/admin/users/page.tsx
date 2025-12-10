@@ -1,100 +1,54 @@
 "use server";
-import { envVariables } from "@/lib/env";
-import { cookies } from "next/headers";
+import { serverFetch } from "@/lib/server-fetch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import UserManagementActions from "@/components/modules/admin/UserManagementActions";
+import { Badge } from "@/components/ui/badge";
 
-async function updateUserStatusAction(id: string, formData: FormData) {
-  "use server";
-  const token = (await cookies()).get("accessToken")?.value;
-  const status = String(formData.get("status") || "ACTIVE");
-  if (!token) return;
-  await fetch(`${envVariables.BASE_API_URL}/users/${id}/status`, {
-    method: "PATCH",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ status }),
-  });
-}
-
-async function updateUserRoleAction(id: string, formData: FormData) {
-  "use server";
-  const token = (await cookies()).get("accessToken")?.value;
-  const role = String(formData.get("role") || "TOURIST");
-  if (!token) return;
-  await fetch(`${envVariables.BASE_API_URL}/users/${id}/role`, {
-    method: "PATCH",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ role }),
-  });
-}
-
-export default async function AdminUsersPage() {
-  const token = (await cookies()).get("accessToken")?.value;
-  const res = await fetch(`${envVariables.BASE_API_URL}/users?limit=20`, {
-    cache: "no-store",
-    headers: token ? { authorization: token } : undefined,
-  });
-  const json = await res.json();
-  const users: {
+type User = {
     id: string;
     email: string;
     name: string;
     role: string;
     status: string;
-  }[] = json?.data || [];
+};
+
+export default async function AdminUsersPage() {
+  const res = await serverFetch.get(`/users?limit=50`); // Fetch more users
+  const json = await res.json();
+  const users: User[] = json?.data || [];
 
   return (
-    <div className='max-w-6xl mx-auto py-8 px-4'>
-      <h1 className='text-2xl font-semibold mb-4'>Manage Users</h1>
-      <div className='space-y-3'>
-        {users.map((u) => (
-          <div key={u.id} className='border rounded p-3'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='font-medium'>
-                  {u.name} — {u.email}
-                </p>
-                <p className='text-sm text-zinc-600'>
-                  Role: {u.role} | Status: {u.status}
-                </p>
-              </div>
-              <div className='flex gap-2'>
-                <form
-                  action={updateUserStatusAction.bind(null, u.id)}
-                  className='flex gap-2'>
-                  <select
-                    name='status'
-                    defaultValue={u.status}
-                    className='rounded border px-2 py-1'>
-                    <option value='ACTIVE'>ACTIVE</option>
-                    <option value='BLOCKED'>BLOCKED</option>
-                  </select>
-                  <button
-                    type='submit'
-                    className='rounded bg-black text-white px-3 py-1'>
-                    Update Status
-                  </button>
-                </form>
-                <form
-                  action={updateUserRoleAction.bind(null, u.id)}
-                  className='flex gap-2'>
-                  <select
-                    name='role'
-                    defaultValue={u.role}
-                    className='rounded border px-2 py-1'>
-                    <option value='SUPER_ADMIN'>SUPER_ADMIN</option>
-                    <option value='ADMIN'>ADMIN</option>
-                    <option value='GUIDE'>GUIDE</option>
-                    <option value='TOURIST'>TOURIST</option>
-                  </select>
-                  <button
-                    type='submit'
-                    className='rounded bg-black text-white px-3 py-1'>
-                    Update Role
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        ))}
+    <div className='max-w-7xl mx-auto py-8 px-4'>
+      <div className="mb-6">
+        <h1 className='text-3xl font-bold'>Manage Users</h1>
+        <p className="text-muted-foreground">Update user roles and statuses.</p>
+      </div>
+      <div className="border rounded-lg">
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {users.map((user) => (
+                    <TableRow key={user.id}>
+                        <TableCell>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                        </TableCell>
+                        <TableCell><Badge variant="outline">{user.role}</Badge></TableCell>
+                        <TableCell><Badge variant={user.status === 'ACTIVE' ? 'default' : 'destructive'}>{user.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                            <UserManagementActions user={user} />
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
       </div>
     </div>
   );
