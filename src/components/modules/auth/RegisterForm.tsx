@@ -2,6 +2,7 @@
 
 import { registerUser } from "@/services/auth/registerUser";
 import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "../../ui/button";
 import {
   Field,
@@ -16,14 +17,20 @@ import { RadioGroup, RadioGroupItem } from "../../ui/radio-group";
 import { Label } from "../../ui/label";
 
 const RegisterForm = () => {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(registerUser, null);
   const [selectedRole, setSelectedRole] = useState("TOURIST"); // Default role
 
   useEffect(() => {
-    if (state && !state.success && state.message) {
-      toast.error(state.message);
+    if (state) {
+      if (!state.success && state.message) {
+        toast.error(state.message);
+      } else if (state.success && state.redirectTo) {
+        toast.success("Registration successful! Check your email to verify.");
+        router.push(state.redirectTo);
+      }
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <form action={formAction}>
@@ -35,7 +42,7 @@ const RegisterForm = () => {
             <Input id='name' name='name' type='text' placeholder='John Doe' />
             <InputFieldError field='name' state={state} />
           </Field>
-          
+
           {/* Email */}
           <Field>
             <FieldLabel htmlFor='email'>Email</FieldLabel>
@@ -47,14 +54,14 @@ const RegisterForm = () => {
             />
             <InputFieldError field='email' state={state} />
           </Field>
-          
+
           {/* Password */}
           <Field>
             <FieldLabel htmlFor='password'>Password</FieldLabel>
             <Input id='password' name='password' type='password' />
             <InputFieldError field='password' state={state} />
           </Field>
-          
+
           {/* Confirm Password */}
           <Field>
             <FieldLabel htmlFor='confirmPassword'>Confirm Password</FieldLabel>
@@ -65,7 +72,7 @@ const RegisterForm = () => {
             />
             <InputFieldError field='confirmPassword' state={state} />
           </Field>
-          
+
           {/* Address */}
           <Field className='md:col-span-2'>
             <FieldLabel htmlFor='address'>Address</FieldLabel>
@@ -77,7 +84,7 @@ const RegisterForm = () => {
             />
             <InputFieldError field='address' state={state} />
           </Field>
-          
+
           {/* Contact Number */}
           <Field>
             <FieldLabel htmlFor='contactNo'>Contact Number</FieldLabel>
@@ -89,25 +96,24 @@ const RegisterForm = () => {
             />
             <InputFieldError field='contactNo' state={state} />
           </Field>
-          
+
           {/* Role Selection */}
           <Field>
             <FieldLabel>Register as</FieldLabel>
-            <RadioGroup 
-              defaultValue={selectedRole} 
-              name="role" 
+            <RadioGroup
+              defaultValue={selectedRole}
+              name='role'
               onValueChange={setSelectedRole} // Update state on change
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="TOURIST" id="tourist" />
-                <Label htmlFor="tourist" className="cursor-pointer">
+              className='flex flex-col space-y-2'>
+              <div className='flex items-center space-x-2'>
+                <RadioGroupItem value='TOURIST' id='tourist' />
+                <Label htmlFor='tourist' className='cursor-pointer'>
                   Tourist (I want to book tours)
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="GUIDE" id="guide" />
-                <Label htmlFor="guide" className="cursor-pointer">
+              <div className='flex items-center space-x-2'>
+                <RadioGroupItem value='GUIDE' id='guide' />
+                <Label htmlFor='guide' className='cursor-pointer'>
                   Guide (I want to host tours)
                 </Label>
               </div>
@@ -115,10 +121,16 @@ const RegisterForm = () => {
             <InputFieldError field='role' state={state} />
           </Field>
         </div>
-        
+
         {/* Guide Specific Fields (Conditional) */}
-        <div id="guideFields" className={selectedRole === "GUIDE" ? "mt-4 space-y-4" : "hidden mt-4 space-y-4"}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          id='guideFields'
+          className={
+            selectedRole === "GUIDE"
+              ? "mt-4 space-y-4"
+              : "hidden mt-4 space-y-4"
+          }>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Field>
               <FieldLabel htmlFor='expertise'>Expertise</FieldLabel>
               <Input
@@ -137,12 +149,12 @@ const RegisterForm = () => {
                 name='dailyRate'
                 type='number'
                 placeholder='50'
-                min="1"
+                min='1'
               />
               <InputFieldError field='dailyRate' state={state} />
             </Field>
           </div>
-          
+
           <Field>
             <FieldLabel htmlFor='languagesSpoken'>Languages Spoken</FieldLabel>
             <Input
@@ -154,15 +166,15 @@ const RegisterForm = () => {
             <FieldDescription>Separate by commas</FieldDescription>
             <InputFieldError field='languagesSpoken' state={state} />
           </Field>
-          
+
           <Field>
             <FieldLabel htmlFor='bio'>Bio</FieldLabel>
             <textarea
               id='bio'
               name='bio'
               rows={3}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Tell travelers about yourself..."
+              className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+              placeholder='Tell travelers about yourself...'
             />
             <InputFieldError field='bio' state={state} />
           </Field>
@@ -170,7 +182,7 @@ const RegisterForm = () => {
 
         <FieldGroup className='mt-4'>
           <Field>
-            <Button type='submit' disabled={isPending} className="w-full">
+            <Button type='submit' disabled={isPending} className='w-full'>
               {isPending ? "Creating Account..." : "Create Account"}
             </Button>
 
@@ -186,4 +198,5 @@ const RegisterForm = () => {
     </form>
   );
 };
+
 export default RegisterForm;

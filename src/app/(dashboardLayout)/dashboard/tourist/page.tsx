@@ -88,10 +88,10 @@ export default async function TouristDashboardPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {bookings.data.length > 0 ? (
+          {bookings?.data?.length > 0 ? (
             <div className="space-y-4">
-              {bookings.data.map((booking: any) => (
-                <div key={booking.id} className="flex items-center justify-between rounded-lg border p-4">
+              {bookings?.data?.map((booking: any) => (
+                <div key={booking?.id} className="flex items-center justify-between rounded-lg border p-4">
                   <div>
                     <h3 className="font-semibold">{booking.listing?.title}</h3>
                     <p className="text-sm text-gray-500">

@@ -66,17 +66,14 @@ export const registerUser = async (
     const result = await res.json();
 
     if (result.success) {
-      // Auto-login after registration
-      const loginPayload = {
-        email: validatedPayload.email,
-        password: validatedPayload.password,
+      // Redirect to verify-email page after registration
+      // The user will receive an email with verification link
+      const { redirect } = await import('next/navigation');
+      // Note: This redirect will be handled by the form submission response
+      return {
+        ...result,
+        redirectTo: `/verify-email?email=${encodeURIComponent(validatedPayload.email)}`,
       };
-      
-      const loginFormData = new FormData();
-      loginFormData.append("email", loginPayload.email);
-      loginFormData.append("password", loginPayload.password);
-      
-      await loginUser(_currentState, loginFormData);
     }
 
     return result;
