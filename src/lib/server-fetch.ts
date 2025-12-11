@@ -49,7 +49,6 @@ const refreshAccessToken = async (): Promise<string | null> => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${refreshToken}`,
         },
-        credentials: "include",
       }
     );
 
@@ -62,10 +61,11 @@ const refreshAccessToken = async (): Promise<string | null> => {
     if (result.success && result.data?.accessToken) {
       await setCookie("accessToken", result.data.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production" || true, // Force secure if sameSite is none. Since we're explicitly setting sameSite: "none" here, secure must be true.
+        sameSite: "none", // Set to none to allow cross-site POST requests
         maxAge: 60 * 60 * 24, // 24 hours
         path: "/",
+        // domain: process.env.NODE_ENV === "development" ? "localhost" : undefined, // Specify domain for consistency
       });
 
       return result.data.accessToken;
@@ -90,6 +90,8 @@ const serverFetchHelper = async (
 
   const makeRequest = async (token: string | null): Promise<Response> => {
     const requestHeaders: Record<string, string> = {};
+    let requestBody: RequestInit["body"] = restOptions.body; // Initialize with original body
+    const finalRestOptions = { ...restOptions }; // Create a mutable copy of restOptions
 
     // Add custom headers
     Object.entries(headers).forEach(([key, value]) => {
@@ -99,20 +101,83 @@ const serverFetchHelper = async (
     });
 
     if (token) {
-      requestHeaders["Authorization"] = `Bearer ${token}`;
+      // requestHeaders["Authorization"] = `${token}`; // If using Authorization header
+      requestHeaders["Cookie"] = `accessToken=${token}`; // Add accessToken to Cookie header
     }
 
-    // Handle FormData vs JSON
-    if (!(restOptions.body instanceof FormData)) {
-      if (restOptions.body && !requestHeaders["Content-Type"]) {
-        requestHeaders["Content-Type"] = "application/json";
+    // Determine Content-Type
+    if (
+      !(requestBody instanceof FormData) &&
+      requestBody &&
+      !requestHeaders["Content-Type"]
+    ) {
+      requestHeaders["Content-Type"] = "application/json";
+    }
+
+    const isJsonContentType =
+      requestHeaders["Content-Type"] === "application/json";
+
+    // If Content-Type is application/json and requestBody is an object (not FormData, null)
+    // then stringify it first before attempting to parse/modify.
+    if (
+      isJsonContentType &&
+      typeof requestBody === "object" &&
+      requestBody !== null &&
+      !(requestBody instanceof FormData)
+    ) {
+      try {
+        requestBody = JSON.stringify(requestBody);
+      } catch (e) {
+        console.error("Failed to stringify JSON body:", e);
+        // If stringification fails, proceed with original body.
       }
+    }
+
+    // Now, if requestBody is a string and Content-Type is JSON, attempt to modify 'duration'
+    if (isJsonContentType && typeof requestBody === "string") {
+      try {
+        const parsedBody = JSON.parse(requestBody);
+        let modified = false;
+
+        // Check for 'duration' at the top level
+        if (
+          parsedBody &&
+          typeof parsedBody === "object" &&
+          typeof parsedBody.duration === "number"
+        ) {
+          parsedBody.duration = String(parsedBody.duration);
+          modified = true;
+        }
+
+        // Check for 'duration' nested under a 'body' property (as per error path)
+        if (
+          parsedBody &&
+          typeof parsedBody === "object" &&
+          parsedBody.body &&
+          typeof parsedBody.body === "object" &&
+          typeof parsedBody.body.duration === "number"
+        ) {
+          parsedBody.body.duration = String(parsedBody.body.duration);
+          modified = true;
+        }
+
+        if (modified) {
+          requestBody = JSON.stringify(parsedBody);
+        }
+      } catch (e) {
+        console.error("Failed to parse or modify JSON body:", e);
+      }
+    }
+
+    // Ensure the original body from restOptions is not duplicated in fetch call
+    if (restOptions.body && requestBody !== restOptions.body) {
+      delete finalRestOptions.body;
     }
 
     const response = await fetch(`${envVariables.BASE_API_URL}${endpoint}`, {
       headers: requestHeaders,
-      ...restOptions,
-      credentials: "include",
+      body: requestBody, // Use the potentially modified requestBody
+      ...finalRestOptions, // Contains all other original options EXCEPT body
     });
 
     // Check for token expiration (401)
@@ -141,9 +206,10 @@ const serverFetchHelper = async (
             if (newToken) {
               // Retry with new token
               try {
+                // Pass the original 'options' to retain method, endpoint, etc.
                 const retryResponse = await serverFetchHelper(
                   endpoint,
-                  options,
+                  { ...options, body: requestBody }, // Ensure retried request has the modified body
                   retryCount + 1
                 );
                 resolve(retryResponse);

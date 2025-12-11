@@ -11,7 +11,7 @@ export const createListing = async (_currentState: any, formData: FormData) => {
     description: formData.get("description"),
     location: formData.get("location"),
     price: Number(formData.get("price")),
-    duration: Number(formData.get("duration")),
+    duration: String(formData.get("duration")),
     meetingPoint: formData.get("meetingPoint"),
     maxGroupSize: Number(formData.get("maxGroupSize")),
     category: formData.get("category"),
