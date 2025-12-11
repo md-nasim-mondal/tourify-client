@@ -61,7 +61,7 @@ export default function TopRatedGuides() {
         <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {guides.map((guide) => (
             <div
-              key={guide.id}
+              key={guide?.id}
               className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-lg transition-all hover:shadow-xl"
             >
               <div className="relative">
@@ -107,7 +107,7 @@ export default function TopRatedGuides() {
                   </div>
                   
                   <Link
-                    href={`/guides/${guide.id}`}
+                    href={`/guides/${guide?.id}`}
                     className="mt-6 inline-block w-full rounded-lg bg-primary py-2 text-center text-white hover:bg-primary/90"
                   >
                     View Profile

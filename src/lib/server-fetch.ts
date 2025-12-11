@@ -1,8 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCookie, setCookie } from "@/services/auth/tokenHandlers";
 import { envVariables } from "./env";
 
+// Define a custom options type to include our accessToken
+interface FetchOptions extends RequestInit {
+  accessToken?: string;
+}
+
+class FetchError extends Error {
+  statusCode: number;
+  data: any;
+
+  constructor(message: string, statusCode: number, data: any) {
+    super(message);
+    this.statusCode = statusCode;
+    this.data = data;
+    this.name = "FetchError";
+  }
+}
+
 let isRefreshing = false;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let refreshPromise: Promise<string | null> | null = null;
 let failedQueue: Array<{
   resolve: (token: string | null) => void;
@@ -34,14 +51,17 @@ const refreshAccessToken = async (): Promise<string | null> => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${refreshToken}`,
+          Cookie: `refreshToken=${refreshToken}`,
         },
-        credentials: "include",
       }
     );
 
     if (!response.ok) {
-      throw new Error("Failed to refresh token");
+      const error = await response.json().catch(() => ({}));
+      console.error("Refresh token failed:", error);
+      await setCookie("accessToken", "", { maxAge: -1, path: "/" });
+      await setCookie("refreshToken", "", { maxAge: -1, path: "/" });
+      throw new Error(`Failed to refresh token: ${response.status}`);
     }
 
     const result = await response.json();
@@ -49,8 +69,8 @@ const refreshAccessToken = async (): Promise<string | null> => {
     if (result.success && result.data?.accessToken) {
       await setCookie("accessToken", result.data.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production" || true,
+        sameSite: "none",
         maxAge: 60 * 60 * 24, // 24 hours
         path: "/",
       });
@@ -60,25 +80,25 @@ const refreshAccessToken = async (): Promise<string | null> => {
 
     throw new Error("Invalid refresh token response");
   } catch (error) {
-    // Clear tokens if refresh fails
-    await setCookie("accessToken", "", { maxAge: 0, path: "/" });
-    await setCookie("refreshToken", "", { maxAge: 0, path: "/" });
+    console.error("Token refresh error:", error);
+    await setCookie("accessToken", "", { maxAge: -1, path: "/" });
+    await setCookie("refreshToken", "", { maxAge: -1, path: "/" });
     throw error;
   }
 };
 
 const serverFetchHelper = async (
   endpoint: string,
-  options: RequestInit,
+  options: FetchOptions,
   retryCount = 0
 ): Promise<Response> => {
-  const { headers = {}, ...restOptions } = options;
-  const accessToken = await getCookie("accessToken");
+  const { headers = {}, accessToken: optionsToken, ...restOptions } = options;
 
   const makeRequest = async (token: string | null): Promise<Response> => {
     const requestHeaders: Record<string, string> = {};
+    let requestBody: RequestInit["body"] = restOptions.body;
+    const finalRestOptions = { ...restOptions };
 
-    // Add custom headers
     Object.entries(headers).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         requestHeaders[key] = String(value);
@@ -86,23 +106,36 @@ const serverFetchHelper = async (
     });
 
     if (token) {
-      requestHeaders["Authorization"] = `Bearer ${token}`;
+      requestHeaders["Authorization"] = `${token}`;
     }
 
-    // Handle FormData vs JSON
-    if (!(restOptions.body instanceof FormData)) {
-      if (restOptions.body && !requestHeaders["Content-Type"]) {
-        requestHeaders["Content-Type"] = "application/json";
-      }
+    if (
+      !(requestBody instanceof FormData) &&
+      requestBody &&
+      !requestHeaders["Content-Type"]
+    ) {
+      requestHeaders["Content-Type"] = "application/json";
+    }
+
+    if (
+      requestHeaders["Content-Type"] === "application/json" &&
+      typeof requestBody === "object" &&
+      requestBody !== null &&
+      !(requestBody instanceof FormData)
+    ) {
+      requestBody = JSON.stringify(requestBody);
+    }
+    
+    if (restOptions.body && requestBody !== restOptions.body) {
+      delete finalRestOptions.body;
     }
 
     const response = await fetch(`${envVariables.BASE_API_URL}${endpoint}`, {
       headers: requestHeaders,
-      ...restOptions,
-      credentials: "include",
+      body: requestBody,
+      ...finalRestOptions,
     });
 
-    // Check for token expiration (401)
     if (response.status === 401 && token && retryCount < 1) {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -121,16 +154,14 @@ const serverFetchHelper = async (
           });
       }
 
-      // Queue this request
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({
           resolve: async (newToken) => {
             if (newToken) {
-              // Retry with new token
               try {
                 const retryResponse = await serverFetchHelper(
                   endpoint,
-                  options,
+                  { ...options, accessToken: newToken }, // Retry with new token
                   retryCount + 1
                 );
                 resolve(retryResponse);
@@ -149,35 +180,36 @@ const serverFetchHelper = async (
     return response;
   };
 
-  return makeRequest(accessToken);
+  // Prioritize token from options, then from cookie
+  const token = optionsToken || (await getCookie("accessToken"));
+  return makeRequest(token);
 };
 
 export const serverFetch = {
-  get: async (endpoint: string, options: RequestInit = {}): Promise<Response> =>
+  get: async (endpoint: string, options: FetchOptions = {}): Promise<Response> =>
     serverFetchHelper(endpoint, { ...options, method: "GET" }),
 
   post: async (
     endpoint: string,
-    options: RequestInit = {}
+    options: FetchOptions = {}
   ): Promise<Response> =>
     serverFetchHelper(endpoint, { ...options, method: "POST" }),
 
-  put: async (endpoint: string, options: RequestInit = {}): Promise<Response> =>
+  put: async (endpoint: string, options: FetchOptions = {}): Promise<Response> =>
     serverFetchHelper(endpoint, { ...options, method: "PUT" }),
 
   patch: async (
     endpoint: string,
-    options: RequestInit = {}
+    options: FetchOptions = {}
   ): Promise<Response> =>
     serverFetchHelper(endpoint, { ...options, method: "PATCH" }),
 
   delete: async (
     endpoint: string,
-    options: RequestInit = {}
+    options: FetchOptions = {}
   ): Promise<Response> =>
     serverFetchHelper(endpoint, { ...options, method: "DELETE" }),
 
-  // Raw fetch for special cases
   raw: async (endpoint: string, options: RequestInit = {}): Promise<Response> =>
     fetch(`${envVariables.BASE_API_URL}${endpoint}`, options),
 };

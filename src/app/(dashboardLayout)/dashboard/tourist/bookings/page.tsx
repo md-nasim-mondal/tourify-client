@@ -1,94 +1,128 @@
-"use server";
-import { envVariables } from "@/lib/env";
-import { cookies } from "next/headers";
+export const dynamic = 'force-dynamic';
 
-async function cancelBookingAction(id: string) {
-  "use server";
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-  if (!token) return;
-  await fetch(`${envVariables.BASE_API_URL}/bookings/${id}/status`, {
-    method: "PATCH",
-    headers: {
-      "content-type": "application/json",
-      authorization: token,
-    },
-    body: JSON.stringify({ status: "CANCELLED" }),
-  });
-}
+// Existing content of the file
 
-async function payBookingAction(id: string) {
-  "use server";
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-  if (!token) return;
-  const initRes = await fetch(
-    `${envVariables.BASE_API_URL}/payments/initiate`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: token },
-      body: JSON.stringify({ bookingId: id }),
-    }
-  );
-  const initJson = await initRes.json();
-  const paymentId: string | undefined = initJson?.data?.id;
-  if (!paymentId) return;
-  await fetch(`${envVariables.BASE_API_URL}/payments/confirm`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ paymentId }),
-  });
-}
+
+import { serverFetch } from "@/lib/server-fetch";
+import CancelBookingButton from "@/components/modules/dashboard/CancelBookingButton";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+
+type Booking = {
+  id: string;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+  date: string;
+  listing: {
+    id: string;
+    title: string;
+    images: string[];
+  };
+};
+
+const statusColors = {
+  PENDING: "bg-yellow-500",
+  CONFIRMED: "bg-blue-500",
+  CANCELLED: "bg-red-500",
+  COMPLETED: "bg-green-500",
+};
 
 export default async function TouristBookingsPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-  const res = await fetch(`${envVariables.BASE_API_URL}/bookings`, {
-    cache: "no-store",
-    headers: token ? { authorization: token } : undefined,
-  });
-  const json = await res.json();
-  const bookings: {
-    id: string;
-    status: string;
-    date: string;
-    listing: { title: string };
-  }[] = json?.data || [];
+  const res = await serverFetch.get(`/bookings`);
+  const result = await res.json();
+  const bookings: Booking[] = result?.data || [];
+
+  const now = new Date();
+  const upcomingBookings = bookings.filter(
+    (b) =>
+      new Date(b.date) >= now &&
+      b.status !== "CANCELLED" &&
+      b.status !== "COMPLETED"
+  );
+  const pastBookings = bookings.filter(
+    (b) =>
+      new Date(b.date) < now ||
+      b.status === "CANCELLED" ||
+      b.status === "COMPLETED"
+  );
+
+  const renderBookingCard = (booking: Booking) => (
+    <Card key={booking.id} className='overflow-hidden'>
+      <div className='flex items-center gap-4 p-4'>
+        <Image
+          src={booking.listing.images?.[0] || "/placeholder.png"}
+          alt={booking.listing.title}
+          width={96}
+          height={96}
+          className='w-24 h-24 object-cover rounded-lg'
+        />
+        <div className='grow'>
+          <p className='font-semibold text-lg'>{booking.listing.title}</p>
+          <p className='text-sm text-zinc-600 mt-1'>
+            Date: {new Date(booking.date).toLocaleDateString()}
+          </p>
+          <Badge
+            className={cn("mt-2 text-white", statusColors[booking.status])}>
+            {booking.status}
+          </Badge>
+        </div>
+        <div className='flex flex-col gap-2 shrink-0'>
+          {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
+            <CancelBookingButton bookingId={booking.id} />
+          )}
+          {booking.status === "CONFIRMED" && (
+            <Button asChild size='sm'>
+              <Link href={`/dashboard/tourist/payments/${booking.id}`}>
+                Pay Now
+              </Link>
+            </Button>
+          )}
+          {booking.status === "COMPLETED" && (
+            <Button asChild size='sm' variant='outline'>
+              <Link href={`/dashboard/tourist/reviews/new/${booking.id}`}>
+                Leave a Review
+              </Link>
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
-    <div className='max-w-6xl mx-auto py-8 px-4'>
-      <h1 className='text-2xl font-semibold mb-4'>My Bookings</h1>
-      <div className='space-y-3'>
-        {bookings.map((b) => (
-          <form
-            key={b.id}
-            action={cancelBookingAction.bind(null, b.id)}
-            className='border rounded p-3 flex items-center justify-between'>
-            <div>
-              <p className='font-medium'>{b.listing?.title}</p>
-              <p className='text-sm text-zinc-600'>
-                {new Date(b.date).toDateString()}
-              </p>
-              <p className='text-xs'>Status: {b.status}</p>
+    <div className='max-w-6xl mx-auto py-8 px-4 space-y-8'>
+      <div>
+        <h1 className='text-3xl font-bold'>My Trips</h1>
+        <p className='text-muted-foreground'>
+          An overview of your booked tours.
+        </p>
+      </div>
+
+      <div className='space-y-6'>
+        <section>
+          <h2 className='text-2xl font-semibold mb-4'>Upcoming Trips</h2>
+          {upcomingBookings.length > 0 ? (
+            <div className='space-y-4'>
+              {upcomingBookings.map(renderBookingCard)}
             </div>
-            {b.status === "PENDING" && (
-              <div className='flex gap-2'>
-                <button
-                  type='submit'
-                  className='rounded bg-red-600 text-white px-3 py-1'>
-                  Cancel
-                </button>
-                <form action={payBookingAction.bind(null, b.id)}>
-                  <button
-                    type='submit'
-                    className='rounded bg-blue-600 text-white px-3 py-1'>
-                    Pay
-                  </button>
-                </form>
-              </div>
-            )}
-          </form>
-        ))}
+          ) : (
+            <p className='text-zinc-500'>You have no upcoming trips.</p>
+          )}
+        </section>
+
+        <section>
+          <h2 className='text-2xl font-semibold mb-4'>Past Trips</h2>
+          {pastBookings.length > 0 ? (
+            <div className='space-y-4'>
+              {pastBookings.map(renderBookingCard)}
+            </div>
+          ) : (
+            <p className='text-zinc-500'>You have no past trips.</p>
+          )}
+        </section>
       </div>
     </div>
   );

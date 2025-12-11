@@ -11,10 +11,13 @@ export const setCookie = async (
   const cookieStore = await cookies();
   
   const defaultOptions: Partial<ResponseCookie> = {
-    secure: process.env.NODE_ENV === "production",
+    // To send cross-site cookies with SameSite=None, they *must* be Secure.
+    // So, force secure: true if sameSite is none.
+    secure: true,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none", // Allow cross-site requests to send cookies
     path: "/",
+    // domain: process.env.NODE_ENV === "development" ? "localhost" : undefined, // Specify domain for consistency
   };
 
   cookieStore.set(key, value, { ...defaultOptions, ...options });

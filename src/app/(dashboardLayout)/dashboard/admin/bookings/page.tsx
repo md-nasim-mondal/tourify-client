@@ -1,4 +1,3 @@
-"use server";
 import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 

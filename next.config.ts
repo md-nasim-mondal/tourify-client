@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // output: 'standalone',
   /* config options here */
   reactCompiler: true,
   images: {
@@ -12,6 +13,14 @@ const nextConfig: NextConfig = {
         pathname: "**",
       },
     ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+  turbopack: {
+    root: __dirname,
   },
 };
 

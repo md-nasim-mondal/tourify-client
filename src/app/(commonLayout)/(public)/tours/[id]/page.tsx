@@ -1,157 +1,76 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-"use server";
-import { envVariables } from "@/lib/env";
-import { cookies } from "next/headers";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import TourDetails from "@/components/modules/tours/TourDetails";
+import BookingWidget from "@/components/modules/tours/BookingWidget";
+import { getSingleListing } from "@/services/listing/listing.service";
+import { serverFetch } from "@/lib/server-fetch";
+import ReviewList from "@/components/modules/reviews/ReviewList";
+import { getCookie } from "@/services/auth/tokenHandlers";
 
-export async function createBookingAction(
-  listingId: string,
-  formData: FormData
-) {
-  "use server";
-  const date = String(formData.get("date") || "");
-  const token = (await cookies()).get("accessToken")?.value;
-  if (!token) {
-    return { error: "Please login to book." };
-  }
-  try {
-    const res = await fetch(`${envVariables.BASE_API_URL}/bookings`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: token,
-      },
-      credentials: "include",
-      body: JSON.stringify({ listingId, date }),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      return { error: json?.message || "Failed to create booking" };
-    }
-    return { success: true };
-  } catch (_err: unknown) {
-    return { error: "Network error. Please try again." };
-  }
+interface TourPageProps {
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-export default async function TourDetailsPage({
+async function getReviews(listingId: string) {
+  const res = await serverFetch.get(`/reviews/${listingId}`);
+  const result = await res.json();
+  if (result.success) {
+    return result.data;
+  }
+  return [];
+}
+
+export async function generateMetadata({
   params,
-}: {
-  params: { id: string };
-}) {
-  const res = await fetch(
-    `${envVariables.BASE_API_URL}/listings/${params.id}`,
-    {
-      cache: "no-store",
-    }
-  );
-  const json = await res.json();
-  const tour = json?.data;
+}: TourPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const {data: listing} = await getSingleListing(id);
+
+  if (!listing) {
+    return {
+      title: "Tour Not Found - Tourify",
+    };
+  }
+
+  return {
+    title: `${listing?.title} - Tourify`,
+    description: listing?.description?.substring(0, 160),
+    openGraph: {
+      title: listing?.title,
+      description: listing?.description?.substring(0, 160),
+      images: listing?.images,
+    },
+  };
+}
+
+export default async function TourPage({ params }: TourPageProps) {
+  const { id } = await params;
+  const {data: listing} = await getSingleListing(id);
+  const reviews = await getReviews(id);
+  const accessToken = await getCookie("accessToken");
+
+  if (!listing) {
+    notFound();
+  }
 
   return (
-    <div className='max-w-5xl mx-auto py-8 px-4'>
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-        <div className='md:col-span-2'>
-          <div className='aspect-video bg-zinc-100 mb-4' />
-          <h1 className='text-2xl font-semibold'>{tour?.title}</h1>
-          <p className='text-zinc-600'>{tour?.location}</p>
-          <p className='mt-3'>{tour?.description}</p>
-          <h2 className='mt-6 font-semibold'>Reviews</h2>
-          <div className='mt-2 space-y-2'>
-            {(
-              (tour?.reviews as {
-                id: string;
-                rating: number;
-                comment: string;
-              }[]) || []
-            ).map((r) => (
-              <div key={r.id} className='border rounded p-3'>
-                <p className='font-medium'>Rating: {r.rating}</p>
-                <p className='text-sm text-zinc-600'>{r.comment}</p>
-              </div>
-            ))}
+    <div className='min-h-screen bg-gray-50'>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='grid grid-cols-1 gap-8 lg:grid-cols-3'>
+          {/* Main Content */}
+          <div className='lg:col-span-2 space-y-8'>
+            <TourDetails listing={listing} />
+            <ReviewList reviews={reviews} />
           </div>
-        </div>
-        <div>
-          <div className='border rounded p-4'>
-            <p className='text-lg font-semibold'>${tour?.price}</p>
-            <form
-              action={async (formData: FormData) => {
-                const result = await createBookingAction(params.id, formData);
-                if (result.error) {
-                  alert(result.error);
-                }
-              }}
-              className='mt-3 space-y-3'>
-              <div>
-                <label className='block text-sm'>Date</label>
-                <input
-                  name='date'
-                  type='date'
-                  className='mt-1 w-full rounded border px-3 py-2'
-                  required
-                />
-              </div>
-              <button
-                type='submit'
-                className='w-full rounded bg-black text-white py-2'>
-                Request to Book
-              </button>
-            </form>
-            <p className='mt-2 text-xs text-zinc-600'>
-              Guide: {tour?.guide?.name}
-            </p>
-            <div className='mt-6'>
-              <h3 className='font-semibold mb-2'>Write a Review</h3>
-              <form
-                action={async (formData: FormData) => {
-                  const result = await postReviewAction(params.id, formData);
-                  if (result.error) {
-                    alert(result.error);
-                  }
-                }}
-                className='space-y-2'>
-                <input
-                  name='rating'
-                  type='number'
-                  min={1}
-                  max={5}
-                  className='w-full rounded border px-3 py-2'
-                  placeholder='Rating (1-5)'
-                />
-                <textarea
-                  name='comment'
-                  className='w-full rounded border px-3 py-2'
-                  placeholder='Your experience'></textarea>
-                <button
-                  type='submit'
-                  className='rounded bg-black text-white px-4 py-2'>
-                  Submit Review
-                </button>
-              </form>
-            </div>
+
+          {/* Booking Sidebar */}
+          <div className='lg:col-span-1'>
+            <BookingWidget accessToken={accessToken as string} listing={listing} />
           </div>
         </div>
       </div>
     </div>
   );
-}
-
-export async function postReviewAction(listingId: string, formData: FormData) {
-  "use server";
-  const token = (await cookies()).get("accessToken")?.value;
-  if (!token) return { error: "Please login to review." };
-  const rating = Number(formData.get("rating") || 0);
-  const comment = String(formData.get("comment") || "");
-  try {
-    const res = await fetch(`${envVariables.BASE_API_URL}/reviews`, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: token },
-      body: JSON.stringify({ listingId, rating, comment }),
-    });
-    const json = await res.json();
-    if (!res.ok) return { error: json?.message || "Failed to post review" };
-    return { success: true };
-  } catch {
-    return { error: "Network error. Please try again." };
-  }
 }

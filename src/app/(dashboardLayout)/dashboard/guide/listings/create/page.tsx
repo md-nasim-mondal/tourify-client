@@ -1,40 +1,37 @@
-"use server";
-import { envVariables } from "@/lib/env";
-import { cookies } from "next/headers";
+import CreateListingForm from "@/components/modules/listing/CreateListingForm";
+import { serverFetch } from "@/lib/server-fetch";
+export const dynamic = "force-dynamic";
 
-async function createListingAction(formData: FormData) {
-  "use server";
-  const token = (await cookies()).get("accessToken")?.value;
-  if (!token) return;
-  const title = String(formData.get("title") || "");
-  const description = String(formData.get("description") || "");
-  const location = String(formData.get("location") || "");
-  const price = Number(formData.get("price") || 0);
-  const images = formData.getAll("images") as File[];
+async function getCategories() {
+  const res = await serverFetch.get("/listings/categories/list");
+  const result = await res.json();
+  if (result.success) {
+    return result.data;
+  }
+  return [];
+}
 
-  const multipart = new FormData();
-  images.forEach((file) => multipart.append("images", file));
-  multipart.append("data", JSON.stringify({ title, description, location, price }));
-
-  await fetch(`${envVariables.BASE_API_URL}/listings`, {
-    method: "POST",
-    headers: { authorization: token },
-    body: multipart,
-  });
+async function getLanguages() {
+  const res = await serverFetch.get("/listings/languages/list");
+  const result = await res.json();
+  if (result.success) {
+    return result.data;
+  }
+  return [];
 }
 
 export default async function GuideCreateListingPage() {
+  const categories = await getCategories();
+  const languages = await getLanguages();
+
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      <h1 className="text-2xl font-semibold mb-4">Create Listing</h1>
-      <form action={createListingAction} className="grid grid-cols-1 gap-3 border rounded p-4">
-        <input name="title" placeholder="Title" className="rounded border px-3 py-2" required />
-        <input name="location" placeholder="Location" className="rounded border px-3 py-2" required />
-        <input name="price" type="number" placeholder="Price" className="rounded border px-3 py-2" required />
-        <textarea name="description" placeholder="Description" className="rounded border px-3 py-2" required />
-        <input name="images" type="file" multiple />
-        <button type="submit" className="rounded bg-black text-white px-4 py-2">Create</button>
-      </form>
+    <div className='max-w-4xl mx-auto py-8 px-4'>
+      <div className='border rounded-lg p-6'>
+        <h1 className='text-2xl font-semibold mb-6'>
+          Create a New Tour Listing
+        </h1>
+        <CreateListingForm categories={categories} languages={languages} />
+      </div>
     </div>
   );
 }

@@ -1,123 +1,163 @@
-"use server";
-import { envVariables } from "@/lib/env";
-import { cookies } from "next/headers";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Metadata } from "next";
+export const dynamic = "force-dynamic";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, MapPin, Star, TrendingUp } from "lucide-react";
+import { getBookings } from "@/services/booking/booking.service";
+import { getDashboardMetadata } from "@/services/meta/meta.service";
+import Link from "next/link";
 
+export const metadata: Metadata = {
+  title: "Tourist Dashboard - Tourify",
+};
 
-async function cancelBookingAction(id: string) {
-  "use server";
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-  if (!token) return;
-  await fetch(`${envVariables.BASE_API_URL}/bookings/${id}/status`, {
-    method: "PATCH",
-    headers: {
-      "content-type": "application/json",
-      authorization: token,
-    },
-    body: JSON.stringify({ status: "CANCELLED" }),
-  });
-}
-
-async function payBookingAction(id: string) {
-  "use server";
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-  if (!token) return;
-  const initRes = await fetch(`${envVariables.BASE_API_URL}/payments/initiate`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ bookingId: id }),
-  });
-  const initJson = await initRes.json();
-  const paymentId: string | undefined = initJson?.data?.id;
-  if (!paymentId) return;
-  await fetch(`${envVariables.BASE_API_URL}/payments/confirm`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ paymentId }),
-  });
-}
-
-export default async function TouristDashboardHomePage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-  const [bookingsRes, paymentsRes] = await Promise.all([
-    fetch(`${envVariables.BASE_API_URL}/bookings`, {
-      cache: "no-store",
-      headers: token ? { authorization: token } : undefined,
-    }),
-    fetch(`${envVariables.BASE_API_URL}/payments`, {
-      cache: "no-store",
-      headers: token ? { authorization: token } : undefined,
-    }),
+export default async function TouristDashboardPage() {
+  const [bookings, metadata] = await Promise.all([
+    getBookings({ limit: 5 }),
+    getDashboardMetadata(),
   ]);
-  const json = await bookingsRes.json();
-  const paymentsJson = await paymentsRes.json();
-  const bookings: {
-    id: string;
-    status: string;
-    date: string;
-    listing: { title: string };
-  }[] = json?.data || [];
-  const payments: { id: string; status: string; amount?: number }[] = paymentsJson?.data || [];
-  const upcoming = bookings.filter((b) => b.status === "CONFIRMED");
-  const pending = bookings.filter((b) => b.status === "PENDING");
-  const spent = payments.filter((p) => p.status === "PAID").reduce((sum, p) => sum + (p.amount || 0), 0);
 
   return (
-    <div className='max-w-6xl mx-auto py-8 px-4'>
-      <h1 className='text-2xl font-semibold mb-4'>Tourist Dashboard</h1>
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>Upcoming</h2>
-          <p className='text-2xl font-bold'>{upcoming.length}</p>
-        </div>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>Pending</h2>
-          <p className='text-2xl font-bold'>{pending.length}</p>
-        </div>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>All Bookings</h2>
-          <p className='text-2xl font-bold'>{bookings.length}</p>
-        </div>
-        <div className='border rounded p-4'>
-          <h2 className='font-semibold'>Total Spent</h2>
-          <p className='text-2xl font-bold'>${spent}</p>
-        </div>
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="rounded-lg bg-linear-to-r from-primary to-secondary p-6 text-white">
+        <h1 className="text-2xl font-bold">Welcome back!</h1>
+        <p className="mt-2 opacity-90">Manage your tours, bookings, and reviews</p>
       </div>
-      <h2 className='text-xl font-semibold mb-3'>My Trips</h2>
-      <div className='space-y-3'>
-        {bookings.map((b) => (
-          <form
-            key={b.id}
-            action={cancelBookingAction.bind(null, b.id)}
-            className='border rounded p-3 flex items-center justify-between'>
-            <div>
-              <p className='font-medium'>{b.listing?.title}</p>
-              <p className='text-sm text-zinc-600'>
-                {new Date(b.date).toDateString()}
-              </p>
-              <p className='text-xs'>Status: {b.status}</p>
-            </div>
-            {b.status === "PENDING" && (
-              <div className='flex gap-2'>
-                <button
-                  type='submit'
-                  className='rounded bg-red-600 text-white px-3 py-1'>
-                  Cancel
-                </button>
-                <form action={payBookingAction.bind(null, b.id)}>
-                  <button
-                    type='submit'
-                    className='rounded bg-blue-600 text-white px-3 py-1'>
-                    Pay
-                  </button>
-                </form>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Bookings</p>
+                <p className="text-2xl font-bold">{metadata?.totalBookings || 0}</p>
               </div>
-            )}
-          </form>
-        ))}
+              <Calendar className="h-8 w-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Upcoming Trips</p>
+                <p className="text-2xl font-bold">{metadata?.upcomingTrips || 0}</p>
+              </div>
+              <MapPin className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Completed Trips</p>
+                <p className="text-2xl font-bold">{metadata?.completedTrips || 0}</p>
+              </div>
+              <Star className="h-8 w-8 text-amber-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Spent</p>
+                <p className="text-2xl font-bold">${"---"}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Recent Bookings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Recent Bookings</CardTitle>
+            <Button asChild variant="outline">
+              <Link href="/dashboard/tourist/bookings">View All</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {bookings?.data?.length > 0 ? (
+            <div className="space-y-4">
+              {bookings?.data?.map((booking: any) => (
+                <div key={booking?.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <h3 className="font-semibold">{booking.listing?.title}</h3>
+                    <p className="text-sm text-gray-500">
+                      {new Date(booking.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">${booking.totalPrice}</p>
+                    <span className={`rounded-full px-2 py-1 text-xs ${
+                      booking.status === "CONFIRMED" 
+                        ? "bg-green-100 text-green-800"
+                        : booking.status === "PENDING"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {booking.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No bookings yet</p>
+              <Button asChild className="mt-4">
+                <Link href="/explore">Explore Tours</Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Button asChild variant="outline" className="h-auto py-4">
+              <Link href="/explore">
+                <div className="text-center">
+                  <MapPin className="mx-auto mb-2 h-8 w-8" />
+                  <span>Explore New Tours</span>
+                </div>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-4">
+              <Link href="/dashboard/tourist/bookings">
+                <div className="text-center">
+                  <Calendar className="mx-auto mb-2 h-8 w-8" />
+                  <span>Manage Bookings</span>
+                </div>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-4">
+              <Link href="/dashboard/tourist/reviews">
+                <div className="text-center">
+                  <Star className="mx-auto mb-2 h-8 w-8" />
+                  <span>Write Reviews</span>
+                </div>
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

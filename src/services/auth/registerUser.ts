@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
+import type { UserRole } from "@/lib/auth-utils";
 import { loginUser } from "./loginUser";
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
@@ -16,81 +17,62 @@ export const registerUser = async (
       email: formData.get("email"),
       password: formData.get("password"),
       confirmPassword: formData.get("confirmPassword"),
+      contactNo: formData.get("contactNo"),
+      role: formData.get("role") || "TOURIST",
+      expertise: formData.get("expertise") || "",
+      dailyRate: formData.get("dailyRate") || "",
+      languagesSpoken: formData.get("languagesSpoken") || "",
+      bio: formData.get("bio") || "",
     };
 
     // Validate with zod
-    const validationResult = zodValidator(
-      payload,
-      registerUserValidationSchema
-    );
-
+    const validationResult = zodValidator(payload, registerUserValidationSchema);
+    
     if (validationResult.success === false) {
       return validationResult;
     }
 
     const validatedPayload: any = validationResult.data;
 
-    const registerData = {
+    // Prepare data based on role
+    const registerData: any = {
       name: validatedPayload.name,
       email: validatedPayload.email,
       password: validatedPayload.password,
       address: validatedPayload.address,
+      contactNo: validatedPayload.contactNo,
+      role: validatedPayload.role as UserRole,
     };
 
-    const newFormData = new FormData();
-    newFormData.append("data", JSON.stringify(registerData));
-
-    // Handle profile picture upload
-    const profilePicture = formData.get("profilePicture") as File;
-    if (profilePicture && profilePicture.size > 0) {
-      // Validate file type
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-      if (!allowedTypes.includes(profilePicture.type)) {
-        return {
-          success: false,
-          errors: [
-            {
-              field: "profilePicture",
-              message: "Only JPG, PNG, and WebP images are allowed",
-            },
-          ],
-        };
-      }
-
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (profilePicture.size > maxSize) {
-        return {
-          success: false,
-          errors: [
-            {
-              field: "profilePicture",
-              message: "Image size should be less than 5MB",
-            },
-          ],
-        };
-      }
-
-      newFormData.append("profilePicture", profilePicture);
+    // Add guide-specific fields if role is GUIDE
+    if (validatedPayload.role === "GUIDE") {
+      registerData.expertise = validatedPayload.expertise 
+        ? validatedPayload.expertise.split(",").map((item: string) => item.trim())
+        : [];
+      registerData.languagesSpoken = validatedPayload.languagesSpoken
+        ? validatedPayload.languagesSpoken.split(",").map((item: string) => item.trim())
+        : [];
+      registerData.dailyRate = validatedPayload.dailyRate 
+        ? parseFloat(validatedPayload.dailyRate)
+        : null;
+      registerData.bio = validatedPayload.bio || "";
     }
 
     const res = await serverFetch.post("/auth/register", {
-      body: newFormData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(registerData),
     });
 
     const result = await res.json();
 
     if (result.success) {
-      // Auto login after successful registration
-      const loginFormData = new FormData();
-      loginFormData.append("email", validatedPayload.email);
-      loginFormData.append("password", validatedPayload.password);
-      
-      await loginUser(_currentState, loginFormData);
-      
+      // Redirect to verify-email page after registration
+      // The user will receive an email with verification link
+      const { redirect } = await import('next/navigation');
+      // Note: This redirect will be handled by the form submission response
       return {
-        success: true,
-        message: "Account created successfully! Redirecting...",
+        ...result,
+        redirectTo: `/verify-email?email=${encodeURIComponent(validatedPayload.email)}`,
       };
     }
 
@@ -100,23 +82,13 @@ export const registerUser = async (
     if (err?.digest?.startsWith("NEXT_REDIRECT")) {
       throw err;
     }
-    
-    console.error("Registration error:", err);
-    
-    // Handle specific error types
-    if (err.name === "NetworkError") {
-      return {
-        success: false,
-        message: "Network error. Please check your connection.",
-      };
-    }
-    
+    console.log(err);
     return {
       success: false,
       message: `${
         process.env.NODE_ENV === "development"
           ? err.message
-          : "Registration failed. Please try again!"
+          : "Registration Failed. Please try again!"
       }`,
     };
   }
