@@ -1,4 +1,4 @@
-"use server";
+export const dynamic = 'force-dynamic';
 import { serverFetch } from "@/lib/server-fetch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import UserManagementActions from "@/components/modules/admin/UserManagementActions";

@@ -1,4 +1,8 @@
-"use server";
+export const dynamic = 'force-dynamic';
+
+// Existing content of the file
+
+
 import { serverFetch } from "@/lib/server-fetch";
 import CancelBookingButton from "@/components/modules/dashboard/CancelBookingButton";
 import { Card } from "@/components/ui/card";

@@ -1,4 +1,4 @@
-"use server";
+export const dynamic = 'force-dynamic';
 import { serverFetch } from "@/lib/server-fetch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";

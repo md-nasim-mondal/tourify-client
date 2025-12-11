@@ -1,4 +1,3 @@
-"use server";
 import UpdateProfileForm from "@/components/modules/profile/UpdateProfileForm";
 import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
