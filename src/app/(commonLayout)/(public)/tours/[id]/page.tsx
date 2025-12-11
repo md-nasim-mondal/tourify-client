@@ -5,6 +5,7 @@ import BookingWidget from "@/components/modules/tours/BookingWidget";
 import { getSingleListing } from "@/services/listing/listing.service";
 import { serverFetch } from "@/lib/server-fetch";
 import ReviewList from "@/components/modules/reviews/ReviewList";
+import { getCookie } from "@/services/auth/tokenHandlers";
 
 interface TourPageProps {
   params: Promise<{
@@ -48,6 +49,7 @@ export default async function TourPage({ params }: TourPageProps) {
   const { id } = await params;
   const {data: listing} = await getSingleListing(id);
   const reviews = await getReviews(id);
+  const accessToken = await getCookie("accessToken");
 
   if (!listing) {
     notFound();
@@ -65,7 +67,7 @@ export default async function TourPage({ params }: TourPageProps) {
 
           {/* Booking Sidebar */}
           <div className='lg:col-span-1'>
-            <BookingWidget listing={listing} />
+            <BookingWidget accessToken={accessToken as string} listing={listing} />
           </div>
         </div>
       </div>

@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Calendar, Users, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,8 +14,8 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { createBooking } from "@/services/booking/booking.service";
-import { envVariables } from "@/lib/env";
 import { initiatePaymentClient } from "@/services/payment/initiatePayment";
+import { serverFetch } from "@/lib/server-fetch";
 
 interface BookingWidgetProps {
   listing: {
@@ -27,9 +26,13 @@ interface BookingWidgetProps {
     location?: string;
     meetingPoint?: string;
   };
+  accessToken?: string;
 }
 
-export default function BookingWidget({ listing }: BookingWidgetProps) {
+export default function BookingWidget({
+  listing,
+  accessToken,
+}: BookingWidgetProps) {
   const [date, setDate] = useState<Date | undefined>();
   const [groupSize, setGroupSize] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,25 +41,39 @@ export default function BookingWidget({ listing }: BookingWidgetProps) {
   // Fetch guide availability
   useEffect(() => {
     const fetchAvailability = async () => {
+      if (!accessToken) return;
+
+      const query = new URLSearchParams();
+        query.set("guideId", listing.guide?.id || "");
+        query.set("isAvailable", "true");
+        query.set("limit", "100");
       try {
-        const res = await fetch(
-          `${envVariables.BASE_API_URL}/availabilities?guideId=${listing.guide.id}&isAvailable=true&limit=100`,
-          { credentials: "include" }
+        const res = await serverFetch.get(
+          `/availabilities?${query.toString()}`,
+          { accessToken }
         );
+        if (!res.ok) {
+          console.warn("Failed to fetch availability:", res.status);
+          toast.error("Failed to fetch guide's availability.");
+          return;
+        }
         const json = await res.json();
         const dates = new Set<string>();
+
+        console.log(json.data, "from line 63: ");
+
         (json?.data || []).forEach((slot: { date: string }) => {
           const d = new Date(slot.date);
           d.setHours(0, 0, 0, 0);
           dates.add(d.toISOString());
         });
         setAvailableDates(dates);
-      } catch {
-        // silent fail, calendar will allow any future date
+      } catch (error) {
+        console.warn("Error fetching availability:", error);
       }
     };
     fetchAvailability();
-  }, [listing.guide?.id]);
+  }, [accessToken, listing.guide?.id]);
 
   const totalPrice = listing.price * groupSize;
 
@@ -65,14 +82,22 @@ export default function BookingWidget({ listing }: BookingWidgetProps) {
       toast.error("Please select a date");
       return;
     }
+    if (!accessToken) {
+      toast.error("You must be logged in to book.");
+      return;
+    }
 
     setIsLoading(true);
     try {
       // 1. Create Booking
-      const bookingResult = await createBooking({
-        listingId: listing.id,
-        date: date.toISOString(),
-      });
+      const bookingResult = await createBooking(
+        {
+          listingId: listing.id,
+          date: date.toISOString(),
+          groupSize: groupSize,
+        },
+        accessToken
+      );
 
       if (!bookingResult.success) {
         toast.error(bookingResult.message || "Booking failed");
