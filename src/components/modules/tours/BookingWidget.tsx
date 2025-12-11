@@ -56,7 +56,7 @@ export default function BookingWidget({ listing }: BookingWidgetProps) {
       }
     };
     fetchAvailability();
-  }, [listing.guide.id]);
+  }, [listing.guide?.id]);
 
   const totalPrice = listing.price * groupSize;
 

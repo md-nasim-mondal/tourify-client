@@ -15,7 +15,7 @@ type Booking = {
 export default async function GuideDashboardHomePage() {
   const [bookingsRes, listingsRes] = await Promise.all([
     serverFetch.get(`/bookings`),
-    serverFetch.get(`/listings?mine=true`),
+    serverFetch.get(`/my-create-listings`),
   ]);
 
   const bookingsResult = await bookingsRes.json();
@@ -78,8 +78,8 @@ export default async function GuideDashboardHomePage() {
         </CardHeader>
         <CardContent>
           <div className='space-y-4'>
-            {pending.length > 0 ? (
-              pending.map((b) => (
+            {pending?.length > 0 ? (
+              pending?.map((b) => (
                 <div
                   key={b.id}
                   className='border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>

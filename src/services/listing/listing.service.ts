@@ -16,13 +16,16 @@ interface GetListingsParams {
 export async function getListings(params: GetListingsParams = {}) {
   try {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value) queryParams.set(key, value);
     });
 
-    const res = await serverFetch.get(`/listings?${queryParams.toString()}`);
-    
+    // const res = await serverFetch.get(`/listings?${queryParams.toString()}`);
+    const res = await serverFetch.get(`/listings`);
+
+    console.log(queryParams.toString(), "from line: 27");
+
     if (!res.ok) {
       throw new Error(`Failed to fetch listings: ${res.statusText}`);
     }
