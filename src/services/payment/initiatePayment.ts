@@ -1,5 +1,4 @@
-import { envVariables } from "@/lib/env";
-import { getCookie } from "../auth/tokenHandlers";
+import { serverFetch } from "@/lib/server-fetch";
 
 interface InitiatePaymentPayload {
   bookingId: string;
@@ -17,18 +16,17 @@ interface InitiatePaymentResponse {
 }
 
 export const initiatePaymentClient = async (
-  payload: InitiatePaymentPayload
+  payload: InitiatePaymentPayload,
+  accessToken: string
 ): Promise<InitiatePaymentResponse> => {
-  const accessToken = await getCookie("accessToken");
-  const res = await fetch(
-    `${envVariables.BASE_API_URL}/payments/stripe/initiate`,
+  const res = await serverFetch.post(
+    `/payments/stripe/initiate`,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: accessToken ? `accessToken=${accessToken}` : "",
       },
       body: JSON.stringify(payload),
+      accessToken,
     }
   );
   return await res.json();

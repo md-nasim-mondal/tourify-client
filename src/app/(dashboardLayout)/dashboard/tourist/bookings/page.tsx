@@ -55,6 +55,8 @@ export default async function TouristBookingsPage() {
         <Image
           src={booking.listing.images?.[0] || "/placeholder.png"}
           alt={booking.listing.title}
+          width={96}
+          height={96}
           className='w-24 h-24 object-cover rounded-lg'
         />
         <div className='grow'>

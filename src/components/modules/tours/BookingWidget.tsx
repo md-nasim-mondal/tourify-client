@@ -36,46 +36,37 @@ export default function BookingWidget({
   const [date, setDate] = useState<Date | undefined>();
   const [groupSize, setGroupSize] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [availableDates, setAvailableDates] = useState<Set<string>>(new Set());
+  const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
 
-  // Fetch guide availability
+  // Fetch guide's booked dates
   useEffect(() => {
-    const fetchAvailability = async () => {
-      if (!accessToken) return;
-
-      const query = new URLSearchParams();
-        query.set("guideId", listing.guide?.id || "");
-        query.set("isAvailable", "true");
-        query.set("limit", "100");
+    const fetchBookedDates = async () => {
+      if (!accessToken || !listing.guide?.id) return;
       try {
         const res = await serverFetch.get(
-          `/availabilities?${query.toString()}`,
+          `/bookings/guide-booked-dates/${listing.guide.id}`,
           { accessToken }
         );
         if (!res.ok) {
-          console.warn("Failed to fetch availability:", res.status);
-          toast.error("Failed to fetch guide's availability.");
+          toast.error("Failed to fetch guide's schedule.");
           return;
         }
         const json = await res.json();
         const dates = new Set<string>();
-
-        console.log(json.data, "from line 63: ");
-
-        (json?.data || []).forEach((slot: { date: string }) => {
-          const d = new Date(slot.date);
-          d.setHours(0, 0, 0, 0);
+        (json?.data || []).forEach((isoDate: string) => {
+          const d = new Date(isoDate);
+          d.setHours(0, 0, 0, 0); // Normalize to the start of the day
           dates.add(d.toISOString());
         });
-        setAvailableDates(dates);
+        setBookedDates(dates);
       } catch (error) {
-        console.warn("Error fetching availability:", error);
+        console.warn("Error fetching booked dates:", error);
       }
     };
-    fetchAvailability();
-  }, [accessToken, listing.guide?.id]);
+    fetchBookedDates();
+  }, [accessToken, listing?.guide?.id]);
 
-  const totalPrice = listing.price * groupSize;
+  const totalPrice = listing?.price * groupSize;
 
   const handleBooking = async () => {
     if (!date) {
@@ -110,10 +101,13 @@ export default function BookingWidget({
       );
 
       // 2. Initiate Payment
-      const paymentResult = await initiatePaymentClient({
-        bookingId: bookingResult.data.id,
-        amount: totalPrice,
-      });
+      const paymentResult = await initiatePaymentClient(
+        {
+          bookingId: bookingResult.data.id,
+          amount: totalPrice,
+        },
+        accessToken
+      );
 
       if (paymentResult.success && paymentResult.paymentUrl) {
         // Redirect to payment gateway
@@ -165,9 +159,8 @@ export default function BookingWidget({
                   dd.setHours(0, 0, 0, 0);
                   const iso = dd.toISOString();
                   const isPast = dd < today;
-                  const hasAvailability =
-                    availableDates.size === 0 || availableDates.has(iso);
-                  return isPast || !hasAvailability;
+                  const isBooked = bookedDates.has(iso);
+                  return isPast || isBooked;
                 }}
                 initialFocus
               />
@@ -235,11 +228,9 @@ export default function BookingWidget({
               <span className='text-primary'>${totalPrice}</span>
             </div>
           </div>
-          {availableDates.size > 0 && (
-            <p className='text-xs text-gray-500'>
-              Only available dates are selectable based on guide schedule.
-            </p>
-          )}
+          <p className='text-xs text-gray-500'>
+            Dates where the guide is already booked are not selectable.
+          </p>
         </div>
 
         {/* Booking Button */}

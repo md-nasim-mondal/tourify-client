@@ -87,6 +87,8 @@ export default async function GuideDashboardHomePage() {
                     <Image
                       src={b.user?.photo || "/default-avatar.png"}
                       alt='User'
+                      width={40}
+                      height={40}
                       className='w-10 h-10 rounded-full'
                     />
                     <div>
