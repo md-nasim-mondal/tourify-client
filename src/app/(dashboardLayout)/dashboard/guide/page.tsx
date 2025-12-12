@@ -15,7 +15,7 @@ type Booking = {
 export default async function GuideDashboardHomePage() {
   const [bookingsRes, listingsRes] = await Promise.all([
     serverFetch.get(`/bookings`),
-    serverFetch.get(`/my-create-listings`),
+    serverFetch.get(`/listings/my-create`),
   ]);
 
   const bookingsResult = await bookingsRes.json();
@@ -23,6 +23,8 @@ export default async function GuideDashboardHomePage() {
 
   const bookings: Booking[] = bookingsResult?.data || [];
   const myListings: { id: string }[] = listingsResult?.data || [];
+  const totalListings: number =
+    listingsResult?.meta?.total ?? myListings.length;
 
   const pending = bookings.filter((b) => b.status === "PENDING");
   const confirmed = bookings.filter((b) => b.status === "CONFIRMED");
@@ -42,7 +44,7 @@ export default async function GuideDashboardHomePage() {
             <CardTitle>My Listings</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-bold'>{myListings.length}</p>
+            <p className='text-3xl font-bold'>{totalListings}</p>
           </CardContent>
         </Card>
         <Card>

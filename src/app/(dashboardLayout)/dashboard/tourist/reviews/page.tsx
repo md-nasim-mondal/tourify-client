@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 export default async function TouristReviewsPage() {
   const token = (await cookies()).get("accessToken")?.value;
-  const res = await fetch(`${envVariables.BASE_API_URL}/reviews`, {
+  const res = await fetch(`${envVariables.BASE_API_URL}/reviews/my`, {
     cache: "no-store",
     headers: token ? { authorization: token } : undefined,
   });

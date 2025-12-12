@@ -14,7 +14,7 @@ interface TourPageProps {
 }
 
 async function getReviews(listingId: string) {
-  const res = await serverFetch.get(`/reviews/${listingId}`);
+  const res = await serverFetch.get(`/reviews/listing/${listingId}`);
   const result = await res.json();
   if (result.success) {
     return result.data;
