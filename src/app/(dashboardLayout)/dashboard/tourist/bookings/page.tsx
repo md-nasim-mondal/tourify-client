@@ -1,9 +1,10 @@
-export const dynamic = 'force-dynamic';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const dynamic = "force-dynamic";
 
 // Existing content of the file
 
-
 import { serverFetch } from "@/lib/server-fetch";
+import { envVariables } from "@/lib/env";
 import CancelBookingButton from "@/components/modules/dashboard/CancelBookingButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,10 @@ type Booking = {
     title: string;
     images: string[];
   };
+  payment?: {
+    id: string;
+    status: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+  } | null;
 };
 
 const statusColors = {
@@ -70,15 +75,29 @@ export default async function TouristBookingsPage() {
           </Badge>
         </div>
         <div className='flex flex-col gap-2 shrink-0'>
-          {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
-            <CancelBookingButton bookingId={booking.id} />
-          )}
-          {booking.status === "CONFIRMED" && (
-            <Button asChild size='sm'>
-              <Link href={`/dashboard/tourist/payments/${booking.id}`}>
-                Pay Now
-              </Link>
-            </Button>
+          {(booking.status === "PENDING" || booking.status === "CONFIRMED") &&
+            booking.payment?.status !== "PAID" && (
+              <CancelBookingButton bookingId={booking.id} />
+            )}
+          {booking.status === "CONFIRMED" &&
+            booking.payment?.status !== "PAID" && (
+              <Button asChild size='sm'>
+                <Link href={`/dashboard/tourist/payments/${booking.id}`}>
+                  Pay Now
+                </Link>
+              </Button>
+            )}
+          {booking.payment?.status === "PAID" && booking.payment?.id && (
+            <a
+              href={
+                ((booking.payment as any)?.paymentGatewayData
+                  ?.receiptUrl as string) ||
+                `${envVariables.BASE_API_URL}/payments/${booking.payment.id}/receipt`
+              }
+              target='_blank'
+              className='rounded bg-black text-white px-3 py-1 text-sm text-center'>
+              Download Receipt
+            </a>
           )}
           {booking.status === "COMPLETED" && (
             <Button asChild size='sm' variant='outline'>

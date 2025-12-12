@@ -21,8 +21,9 @@ export async function getListings(params: GetListingsParams = {}) {
       if (value) queryParams.set(key, value);
     });
 
-    // const res = await serverFetch.get(`/listings?${queryParams.toString()}`);
-    const res = await serverFetch.get(`/listings`);
+    const res = await serverFetch.get(
+      `/listings?${queryParams.toString()}`
+    );
 
     console.log(queryParams.toString(), "from line: 27");
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { serverFetch } from "@/lib/server-fetch";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { updateBookingStatus } from "@/services/booking/updateBookingStatus";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { envVariables } from "@/lib/env";
 export const dynamic = "force-dynamic";
 
 async function acceptBookingAction(bookingId: string) {
@@ -32,6 +34,7 @@ type Booking = {
   date: string;
   listing: { id: string; title: string; images: string[] };
   tourist: { name?: string; photo?: string; email?: string };
+  payment?: { id: string; status: "PENDING" | "PAID" | "FAILED" | "REFUNDED" } | null;
 };
 
 const statusColors = {
@@ -80,6 +83,18 @@ export default async function GuideBookingsPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
+          {b.payment?.status === "PAID" && b.payment?.id && (
+            <a
+              href={
+                ((b.payment as any)?.paymentGatewayData?.receiptUrl as string) ||
+                `${envVariables.BASE_API_URL}/payments/${b.payment.id}/receipt`
+              }
+              target='_blank'
+              className='rounded bg-black text-white px-3 py-1 text-sm'
+            >
+              Download Receipt
+            </a>
+          )}
           {b.status === "PENDING" && (
             <>
               <form action={acceptBookingAction.bind(null, b.id)}>

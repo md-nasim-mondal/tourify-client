@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
 import { releasePayout } from "@/services/payment/payment.service";
@@ -47,6 +48,17 @@ export default async function AdminPaymentsPage() {
             </div>
             <div className='flex items-center gap-3'>
               <p className='font-medium'>${p.amount || 0}</p>
+              {p.status === "PAID" && (
+                <a
+                  href={
+                    ((p as any)?.paymentGatewayData?.receiptUrl as string) ||
+                    `${envVariables.BASE_API_URL}/payments/${p.id}/receipt`
+                  }
+                  target='_blank'
+                  className='rounded bg-black text-white px-3 py-1 text-sm'>
+                  Download Receipt
+                </a>
+              )}
               {p.status === "PAID" &&
                 p.booking?.status === "COMPLETED" &&
                 !(
