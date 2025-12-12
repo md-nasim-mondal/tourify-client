@@ -4,7 +4,7 @@
 import { serverFetch } from "@/lib/server-fetch";
 import { revalidatePath } from "next/cache";
 
-type BookingStatus = "CONFIRMED" | "CANCELLED";
+type BookingStatus = "CONFIRMED" | "CANCELLED" | "COMPLETED";
 
 export const updateBookingStatus = async (bookingId: string, status: BookingStatus) => {
   try {

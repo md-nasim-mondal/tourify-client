@@ -1,5 +1,6 @@
 import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
+import { releasePayout } from "@/services/payment/payment.service";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPaymentsPage() {
@@ -13,7 +14,8 @@ export default async function AdminPaymentsPage() {
     id: string;
     status: string;
     amount?: number;
-    booking?: { listing?: { title?: string } };
+    booking?: { status?: string; listing?: { title?: string } };
+    paymentGatewayData?: Record<string, unknown> | null;
   }[] = json?.data || [];
   const total = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
@@ -30,14 +32,36 @@ export default async function AdminPaymentsPage() {
         {payments.map((p) => (
           <div
             key={p.id}
-            className='border rounded p-3 flex items-center justify-between'>
+            className='border rounded p-3 flex items-center justify-between gap-3'>
             <div>
               <p className='font-medium'>
                 {p.booking?.listing?.title || "Booking"}
               </p>
               <p className='text-xs'>Status: {p.status}</p>
+              <p className='text-xs'>Booking: {p.booking?.status}</p>
+              {typeof p.paymentGatewayData === "object" &&
+                p.paymentGatewayData !== null &&
+                "payoutReleasedAt" in p.paymentGatewayData && (
+                  <p className='text-xs'>Payout: Released</p>
+                )}
             </div>
-            <p className='font-medium'>${p.amount || 0}</p>
+            <div className='flex items-center gap-3'>
+              <p className='font-medium'>${p.amount || 0}</p>
+              {p.status === "PAID" &&
+                p.booking?.status === "COMPLETED" &&
+                !(
+                  typeof p.paymentGatewayData === "object" &&
+                  p.paymentGatewayData !== null &&
+                  "payoutReleasedAt" in p.paymentGatewayData
+                ) && (
+                  <form action={releasePayout}>
+                    <input type='hidden' name='paymentId' value={p.id} />
+                    <button className='px-3 py-2 text-sm rounded bg-indigo-600 text-white'>
+                      Release Payout
+                    </button>
+                  </form>
+                )}
+            </div>
           </div>
         ))}
       </div>

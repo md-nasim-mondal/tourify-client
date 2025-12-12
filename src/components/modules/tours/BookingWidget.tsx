@@ -14,8 +14,8 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { createBooking } from "@/services/booking/booking.service";
-import { initiatePaymentClient } from "@/services/payment/initiatePayment";
 import { serverFetch } from "@/lib/server-fetch";
+import { useRouter } from "next/navigation";
 
 interface BookingWidgetProps {
   listing: {
@@ -37,6 +37,7 @@ export default function BookingWidget({
   const [groupSize, setGroupSize] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   // Fetch guide's booked dates
   useEffect(() => {
@@ -96,30 +97,10 @@ export default function BookingWidget({
         return;
       }
 
-      toast.success(
-        "Booking request sent successfully! Redirecting to payment..."
-      );
-
-      // 2. Initiate Payment
-      const paymentResult = await initiatePaymentClient(
-        {
-          bookingId: bookingResult.data.id,
-          amount: totalPrice,
-        },
-        accessToken
-      );
-
-      if (paymentResult.success && paymentResult.paymentUrl) {
-        // Redirect to payment gateway
-        window.location.href = paymentResult.paymentUrl;
-      } else {
-        toast.error(paymentResult.message || "Failed to initiate payment.");
-      }
-    } catch (error) {
-      console.error("Booking or Payment initiation error:", error);
-      toast.error(
-        "An error occurred during booking or payment. Please try again."
-      );
+      toast.success("Booking request sent. Waiting for guide to accept.");
+      router.push("/dashboard/tourist/bookings");
+    } catch {
+      toast.error("An error occurred during booking. Please try again.");
     } finally {
       setIsLoading(false);
     }

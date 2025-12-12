@@ -10,36 +10,53 @@ export const initiatePayment = async (formData: FormData) => {
     amount: Number(formData.get("amount")),
   };
 
+  let url: string | undefined;
   try {
     const res = await serverFetch.post(`/payments/stripe/initiate`, {
       body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
-
     const result = await res.json();
-
-    if (!result.success || !result.data?.url) {
-      throw new Error(result.message || "Failed to initiate payment session.");
+    url = result?.data?.paymentUrl;
+    if (!result.success || !url) {
+      return redirect("/payment/fail");
     }
-    
-    // Redirect to Stripe checkout
-    redirect(result.data.url);
-
-  } catch (err: any) {
-    console.error(err);
-    redirect("/payment/fail");
+  } catch {
+    return redirect("/payment/fail");
   }
+  redirect(url);
 };
 
 export const confirmStripePayment = async (sessionId: string) => {
   try {
     const res = await serverFetch.post(`/payments/stripe/confirm`, {
       body: JSON.stringify({ sessionId }),
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
     const result = await res.json();
     return result;
   } catch (error: any) {
-    return { success: false, message: error.message || "An error occurred during payment confirmation." };
+    return {
+      success: false,
+      message:
+        error.message || "An error occurred during payment confirmation.",
+    };
+  }
+};
+
+export const releasePayout = async (formData: FormData) => {
+  const paymentId = String(formData.get("paymentId") || "");
+  try {
+    const res = await serverFetch.post(`/payments/release-payout`, {
+      body: JSON.stringify({ paymentId }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const result = await res.json();
+    return result;
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || "Failed to release payout.",
+    };
   }
 };

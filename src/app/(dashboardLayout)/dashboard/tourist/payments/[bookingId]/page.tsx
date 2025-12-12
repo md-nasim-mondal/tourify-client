@@ -13,9 +13,10 @@ async function getBookingDetails(id: string) {
     return notFound();
 }
 
-export default async function PaymentPage({ params }: { params: { bookingId: string } }) {
-    const booking = await getBookingDetails(params.bookingId);
-    const totalPrice = booking.listing.price; // Assuming price is per booking for simplicity
+export default async function PaymentPage({ params }: { params: Promise<{ bookingId: string }> }) {
+    const booking = await getBookingDetails((await params).bookingId);
+    const totalPrice = booking.totalPrice || booking.listing.price;
+    const canPay = booking.status === "CONFIRMED";
 
     return (
         <div className="max-w-2xl mx-auto py-8 px-4">
@@ -40,13 +41,19 @@ export default async function PaymentPage({ params }: { params: { bookingId: str
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <form action={initiatePayment}>
-                        <input type="hidden" name="bookingId" value={booking.id} />
-                        <input type="hidden" name="amount" value={totalPrice} />
-                        <Button type="submit" className="w-full" size="lg">
-                            Proceed to Stripe
-                        </Button>
-                    </form>
+                    {canPay ? (
+                      <form action={initiatePayment}>
+                          <input type="hidden" name="bookingId" value={booking.id} />
+                          <input type="hidden" name="amount" value={totalPrice} />
+                          <Button type="submit" className="w-full" size="lg">
+                              Proceed to Stripe
+                          </Button>
+                      </form>
+                    ) : (
+                      <div className="w-full text-center text-sm text-red-600">
+                        Payment is only available after the guide accepts your booking.
+                      </div>
+                    )}
                 </CardFooter>
             </Card>
         </div>

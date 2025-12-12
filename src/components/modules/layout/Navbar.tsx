@@ -53,6 +53,7 @@ export default function Navbar() {
           ? [
               { href: "/dashboard/guide", label: "Dashboard", icon: User },
               { href: "/dashboard/guide/listings", label: "My Listings" },
+              { href: "/dashboard/guide/bookings", label: "My Bookings" },
             ]
           : []),
         ...(userInfo.role === "ADMIN" || userInfo.role === "SUPER_ADMIN"
