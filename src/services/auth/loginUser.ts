@@ -7,9 +7,9 @@ import { redirect } from "next/navigation";
 import type { JwtPayload } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 import {
-  getDefaultDashboardRoute,
-  isValidRedirectForRole,
-  type UserRole,
+    getDefaultDashboardRoute,
+    isValidRedirectForRole,
+    type UserRole,
 } from "@/lib/auth-utils";
 import { setCookie } from "./tokenHandlers";
 import { serverFetch } from "@/lib/server-fetch";
@@ -41,6 +41,13 @@ export const loginUser = async (_currentState: any, formData: FormData) => {
     });
 
     const result = await res.json();
+
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message || "Login Failed!",
+      };
+    }
 
     const setCookieHeaders = res.headers.getSetCookie();
 
@@ -92,10 +99,6 @@ export const loginUser = async (_currentState: any, formData: FormData) => {
     }
 
     const userRole: UserRole = verifiedToken.role;
-
-    if (!result.success) {
-      throw new Error(result.message || "Login Failed!");
-    }
 
     if (redirectTo) {
       const requestedPath = redirectTo.toString();

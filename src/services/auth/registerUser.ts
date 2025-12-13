@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import type { UserRole } from "@/lib/auth-utils";
-import { loginUser } from "./loginUser";
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
 import { registerUserValidationSchema } from "@/zod/auth.validation";
@@ -68,7 +67,6 @@ export const registerUser = async (
     if (result.success) {
       // Redirect to verify-email page after registration
       // The user will receive an email with verification link
-      const { redirect } = await import('next/navigation');
       // Note: This redirect will be handled by the form submission response
       return {
         ...result,
@@ -76,7 +74,11 @@ export const registerUser = async (
       };
     }
 
-    return result;
+    return {
+        success: false,
+        message: result.message || "Registration Failed!",
+        errors: result.errorSources, // Pass validation errors if any
+    };
   } catch (err: any) {
     // Re-throw NEXT_REDIRECT errors so Next.js can handle them
     if (err?.digest?.startsWith("NEXT_REDIRECT")) {
