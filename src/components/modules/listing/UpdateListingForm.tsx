@@ -28,8 +28,8 @@ type Listing = {
   meetingPoint: string;
   maxGroupSize: number;
   category: string | string[]; // Support both for transition
-  language: string | string[]; // Support both for transition
-  images: string[]; // Add images to type
+  languages: string[]; // Correct plural form from DB/API
+  images: string[]; 
 };
 
 type UpdateListingFormProps = {
@@ -49,7 +49,7 @@ export default function UpdateListingForm({
     null
   );
 
-  // Helper to normalize to array (handle comma-separated strings)
+  // Helper to normalize to array (handle comma-separated strings or array)
   const normalizeToArray = (val: string | string[] | undefined) => {
     if (!val) return [];
     if (Array.isArray(val)) return val;
@@ -61,7 +61,7 @@ export default function UpdateListingForm({
     normalizeToArray(listing.category)
   );
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    normalizeToArray(listing.language)
+    normalizeToArray(listing.languages) // Access correct property
   );
 
   // State for Images
