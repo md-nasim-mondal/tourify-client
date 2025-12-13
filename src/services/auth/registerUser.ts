@@ -45,12 +45,8 @@ export const registerUser = async (
 
     // Add guide-specific fields if role is GUIDE
     if (validatedPayload.role === "GUIDE") {
-      registerData.expertise = validatedPayload.expertise 
-        ? validatedPayload.expertise.split(",").map((item: string) => item.trim())
-        : [];
-      registerData.languagesSpoken = validatedPayload.languagesSpoken
-        ? validatedPayload.languagesSpoken.split(",").map((item: string) => item.trim())
-        : [];
+      registerData.expertise = validatedPayload.expertise || "";
+      registerData.languagesSpoken = validatedPayload.languagesSpoken || "";
       registerData.dailyRate = validatedPayload.dailyRate 
         ? parseFloat(validatedPayload.dailyRate)
         : null;

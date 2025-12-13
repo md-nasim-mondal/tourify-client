@@ -59,50 +59,60 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
   return (
     <Link href={`/tours/${listing.id}`}>
-      <Card className='group overflow-hidden transition-all hover:shadow-lg'>
-        <div className='relative h-44 overflow-hidden'>
+      <Card className='group h-full overflow-hidden border-border/50 bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-border/50'>
+        {/* Image Container */}
+        <div className='relative aspect-[4/3] overflow-hidden'>
           <Image
             src={img}
             alt={title}
             fill
-            className='object-cover transition-transform duration-300 group-hover:scale-105'
+            className='object-cover transition-transform duration-700 group-hover:scale-110'
             sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
           />
-          <div className='absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-sm font-semibold'>
+          <div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60' />
+          
+          {/* Price Badge */}
+          <div className='absolute top-3 right-3 rounded-full bg-white/95 px-3 py-1.5 text-sm font-bold text-primary shadow-sm backdrop-blur-sm dark:bg-black/80'>
             {price}
           </div>
+
+          {/* Category Badge */}
+          <div className='absolute top-3 left-3 rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white backdrop-blur-md'>
+            {listing?.category || "Experience"}
+          </div>
         </div>
+
         <CardContent className='p-5'>
-          <div className='mb-3 flex items-center justify-between'>
-            <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
-              {listing?.category || "General"}
-            </span>
-            <div className='flex items-center gap-1'>
-              <Star className='h-4 w-4 fill-amber-400 text-amber-400' />
-              <span className='font-bold'>{rating}</span>
-              <span className='text-gray-500'>({reviews})</span>
+          {/* Header */}
+          <div className='mb-3 flex items-start justify-between gap-2'>
+            <h3 className='line-clamp-1 text-lg font-bold text-foreground group-hover:text-primary transition-colors'>
+              {title}
+            </h3>
+            <div className='flex items-center gap-1 shrink-0 rounded-md bg-amber-100 px-1.5 py-0.5 dark:bg-amber-900/30'>
+              <Star className='h-3.5 w-3.5 fill-amber-500 text-amber-500' />
+              <span className='text-xs font-bold text-amber-700 dark:text-amber-400'>{rating}</span>
             </div>
           </div>
-          <h3 className='mb-2 line-clamp-1 text-lg font-bold text-gray-900'>
-            {title}
-          </h3>
-          <div className='mt-3 flex items-center justify-between text-sm text-gray-600'>
-            <div className='flex items-center gap-2'>
-              <MapPin className='h-4 w-4' />
-              <span>{location}</span>
+
+          {/* Location */}
+          <div className='mb-4 flex items-center gap-1.5 text-sm text-muted-foreground'>
+            <MapPin className='h-4 w-4 text-primary' />
+            <span className='line-clamp-1'>{location}</span>
+          </div>
+
+          {/* Footer Info */}
+          <div className='flex items-center justify-between border-t border-border pt-4 text-xs font-medium text-muted-foreground'>
+            <div className='flex items-center gap-1.5'>
+              <Clock className='h-4 w-4' />
+              <span>{duration}</span>
             </div>
-            <div className='flex items-center gap-3'>
-              <div className='flex items-center gap-1'>
-                <Clock className='h-4 w-4' />
-                <span>{duration}</span>
+            
+            {typeof maxGroupSize === "number" && (
+              <div className='flex items-center gap-1.5'>
+                <Users className='h-4 w-4' />
+                <span>Max {maxGroupSize}</span>
               </div>
-              {typeof maxGroupSize === "number" && (
-                <div className='flex items-center gap-1'>
-                  <Users className='h-4 w-4' />
-                  <span>Max {maxGroupSize}</span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>

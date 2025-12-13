@@ -17,6 +17,12 @@ export const registerUserValidationSchema = z
     confirmPassword: z.string().min(6, {
       error: "Password is required and length should be minimum 6 character!",
     }),
+    role: z.enum(["TOURIST", "GUIDE"]).optional(),
+    contactNo: z.string().optional(),
+    expertise: z.string().optional(),
+    dailyRate: z.union([z.string(), z.number()]).optional(),
+    languagesSpoken: z.string().optional(),
+    bio: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
