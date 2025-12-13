@@ -1,54 +1,86 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { envVariables } from "@/lib/env";
-import { getListings } from "@/services/listing/listing.service";
-import { cookies } from "next/headers";
 
-async function updateListingStatusAction(id: string, formData: FormData) {
-  "use server";
-  const token = (await cookies()).get("accessToken")?.value;
-  const status = String(formData.get("status") || "ACTIVE");
-  if (!token) return;
-  await fetch(`${envVariables.BASE_API_URL}/listings/${id}/status`, {
-    method: "PATCH",
-    headers: { "content-type": "application/json", authorization: token },
-    body: JSON.stringify({ status }),
-  });
-}
+export const dynamic = "force-dynamic";
+
+import { getListings } from "@/services/listing/listing.service";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import ListingManagementActions from "@/components/modules/admin/ListingManagementActions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function AdminListingsPage() {
   const { data: listings } = await getListings();
 
   return (
-    <div className='max-w-6xl mx-auto py-8 px-4'>
-      <h1 className='text-2xl font-semibold mb-4'>Manage Listings</h1>
-      <div className='space-y-3'>
-        {listings?.map((l: any) => (
-          <div
-            key={l.id}
-            className='border rounded p-3 flex items-center justify-between'>
-            <div>
-              <p className='font-medium'>{l.title}</p>
-              <p className='text-sm text-zinc-600'>{l.location}</p>
-              <p className='text-xs'>Status: {l.status || "ACTIVE"}</p>
-            </div>
-            <form
-              action={updateListingStatusAction.bind(null, l.id)}
-              className='flex gap-2'>
-              <select
-                name='status'
-                defaultValue={l.status || "ACTIVE"}
-                className='rounded border px-2 py-1'>
-                <option value='ACTIVE'>ACTIVE</option>
-                <option value='BLOCKED'>BLOCKED</option>
-              </select>
-              <button
-                type='submit'
-                className='rounded bg-black text-white px-3 py-1'>
-                Update
-              </button>
-            </form>
-          </div>
-        ))}
+    <div className='max-w-7xl mx-auto space-y-6'>
+      <div>
+        <h1 className='text-3xl font-bold'>Manage Listings</h1>
+        <p className='text-muted-foreground'>
+          Review and manage all tour listings.
+        </p>
+      </div>
+
+      <div className='border rounded-lg bg-white overflow-hidden'>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead>Listing Details</TableHead>
+              <TableHead>Guide</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className='text-right'>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {listings?.length > 0 ? (
+              listings.map((listing: any) => (
+                <TableRow key={listing.id}>
+                  <TableCell>
+                    <div className='font-medium'>{listing.title}</div>
+                    <div className='text-sm text-muted-foreground'>
+                      {listing.location}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                            <AvatarImage src={listing.guide?.photo} />
+                            <AvatarFallback>{listing.guide?.name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{listing.guide?.name || "Unknown"}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    ${listing.price}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        listing.status === "ACTIVE" ? "default" : "destructive"
+                      }>
+                      {listing.status || "ACTIVE"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className='text-right'>
+                    <ListingManagementActions listing={listing} />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+                <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        No listings found.
+                    </TableCell>
+                </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
