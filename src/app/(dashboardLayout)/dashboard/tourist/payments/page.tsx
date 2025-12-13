@@ -1,6 +1,8 @@
 import { envVariables } from "@/lib/env";
 import { getMyPayments } from "@/services/payment/getMyPayments";
 
+export const dynamic = "force-dynamic";
+
 interface Payment {
   id: string;
   status: string;

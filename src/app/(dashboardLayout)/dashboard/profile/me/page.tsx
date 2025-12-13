@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone, MapPin, User, Quote } from "lucide-react";
 import { getMyProfile } from "@/services/user/getMyProfile";
+export const dynamic = "force-dynamic";
 
 export default async function MyProfilePage() {
   const { data: me } = await getMyProfile();
