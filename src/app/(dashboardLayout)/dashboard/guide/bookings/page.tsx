@@ -50,9 +50,7 @@ export default async function GuideBookingsPage() {
   const bookings: Booking[] = json?.data || [];
 
   const renderRow = (b: Booking) => {
-    const canComplete =
-      b.status === "CONFIRMED" &&
-      new Date(b.date).getTime() < new Date().getTime();
+    const canComplete = b.status === "CONFIRMED";
     return (
       <div
         key={b.id}
