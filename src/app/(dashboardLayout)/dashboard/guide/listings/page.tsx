@@ -13,8 +13,6 @@ export default async function GuideListingsPage() {
   });
   const json = await res.json();
 
-  console.log(json);
-
   const listings: {
     id: string;
     title: string;

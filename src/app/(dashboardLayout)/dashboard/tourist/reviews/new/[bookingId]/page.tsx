@@ -11,8 +11,8 @@ async function getBookingDetails(id: string) {
     return notFound();
 }
 
-export default async function NewReviewPage({ params }: { params: { bookingId: string } }) {
-    const booking = await getBookingDetails(params.bookingId);
+export default async function NewReviewPage({ params }: { params: Promise<{ bookingId: string }> }) {
+    const booking = await getBookingDetails((await params).bookingId);
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCookie, setCookie } from "@/services/auth/tokenHandlers";
+import { parse } from "cookie";
 import { envVariables } from "./env";
 
 // Define a custom options type to include our accessToken
@@ -56,6 +57,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
       }
     );
 
+    // Verify response OK
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       console.error("Refresh token failed:", error);
@@ -65,14 +67,25 @@ const refreshAccessToken = async (): Promise<string | null> => {
     }
 
     const result = await response.json();
+    const setCookieHeaders = response.headers.getSetCookie();
+    let accessTokenObject: any = null;
 
-    if (result.success && result.data?.accessToken) {
-      await setCookie("accessToken", result.data.accessToken, {
+    if (setCookieHeaders && setCookieHeaders.length > 0) {
+      setCookieHeaders.forEach((cookie: string) => {
+        const parsedCookie = parse(cookie);
+        if (parsedCookie["accessToken"]) {
+          accessTokenObject = parsedCookie;
+        }
+      });
+    }
+
+    if (result.success && result.data?.accessToken && accessTokenObject) {
+      await setCookie("accessToken", accessTokenObject.accessToken, {
+        secure: true,
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production" || true,
-        sameSite: "none",
-        maxAge: 60 * 60 * 24, // 24 hours
-        path: "/",
+        maxAge: parseInt(accessTokenObject["Max-Age"]) || 1000 * 60 * 60 * 24,
+        sameSite: (accessTokenObject["SameSite"] as any) || "None",
+        path: accessTokenObject.Path || "/",
       });
 
       return result.data.accessToken;
@@ -106,7 +119,8 @@ const serverFetchHelper = async (
     });
 
     if (token) {
-      requestHeaders["Authorization"] = `${token}`;
+      requestHeaders["Authorization"] = `Bearer ${token}`;
+      requestHeaders["Cookie"] = `accessToken=${token}`;
     }
 
     if (
@@ -124,10 +138,6 @@ const serverFetchHelper = async (
       !(requestBody instanceof FormData)
     ) {
       requestBody = JSON.stringify(requestBody);
-    }
-    
-    if (restOptions.body && requestBody !== restOptions.body) {
-      delete finalRestOptions.body;
     }
 
     const response = await fetch(`${envVariables.BASE_API_URL}${endpoint}`, {
@@ -161,7 +171,7 @@ const serverFetchHelper = async (
               try {
                 const retryResponse = await serverFetchHelper(
                   endpoint,
-                  { ...options, accessToken: newToken }, // Retry with new token
+                  { ...options, accessToken: newToken },
                   retryCount + 1
                 );
                 resolve(retryResponse);
@@ -180,7 +190,6 @@ const serverFetchHelper = async (
     return response;
   };
 
-  // Prioritize token from options, then from cookie
   const token = optionsToken || (await getCookie("accessToken"));
   return makeRequest(token);
 };

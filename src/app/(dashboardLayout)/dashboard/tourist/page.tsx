@@ -1,22 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Metadata } from "next";
-export const dynamic = "force-dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Star, TrendingUp } from "lucide-react";
 import { getBookings } from "@/services/booking/booking.service";
 import { getDashboardMetadata } from "@/services/meta/meta.service";
 import Link from "next/link";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Tourist Dashboard - Tourify",
 };
 
 export default async function TouristDashboardPage() {
-  const [bookings, metadata] = await Promise.all([
+  const [bookings, metadataResponse] = await Promise.all([
     getBookings({ limit: 5 }),
     getDashboardMetadata(),
   ]);
+
+  const metadata = metadataResponse?.data;
 
   return (
     <div className="space-y-6">
@@ -69,7 +71,9 @@ export default async function TouristDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Spent</p>
-                <p className="text-2xl font-bold">${"---"}</p>
+                <p className="text-2xl font-bold">
+                  ${Number(metadata?.totalSpend || 0).toFixed(2)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-500" />
             </div>

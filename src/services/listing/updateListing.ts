@@ -14,8 +14,9 @@ export const updateListing = async (listingId: string, _currentState: any, formD
     duration: Number(formData.get("duration")),
     meetingPoint: formData.get("meetingPoint"),
     maxGroupSize: Number(formData.get("maxGroupSize")),
-    category: formData.get("category"),
-    language: formData.get("language"),
+    category: formData.getAll("category"),
+    language: formData.getAll("language"),
+    keptImages: formData.getAll("keptImages"),
   };
 
   const multipart = new FormData();

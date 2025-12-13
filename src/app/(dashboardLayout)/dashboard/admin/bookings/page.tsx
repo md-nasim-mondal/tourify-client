@@ -1,5 +1,6 @@
 import { envVariables } from "@/lib/env";
 import { cookies } from "next/headers";
+export const dynamic = "force-dynamic";
 
 async function updateBookingStatusAction(id: string, formData: FormData) {
   "use server";

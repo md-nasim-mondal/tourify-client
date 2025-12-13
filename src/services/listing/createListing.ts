@@ -14,8 +14,8 @@ export const createListing = async (_currentState: any, formData: FormData) => {
     duration: String(formData.get("duration")),
     meetingPoint: formData.get("meetingPoint"),
     maxGroupSize: Number(formData.get("maxGroupSize")),
-    category: formData.get("category"),
-    language: formData.get("language"),
+    category: formData.getAll("category"),
+    language: formData.getAll("language"),
   };
 
   const multipart = new FormData();
