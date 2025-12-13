@@ -66,7 +66,7 @@ export default function PopularDestinations() {
           {destinations.map((dest) => (
             <Link
               key={dest.name}
-              href={`/explore?city=${dest.name}`}
+              href={`/explore?city=${encodeURIComponent(dest.name)}`}
               className="group relative overflow-hidden rounded-2xl shadow-lg transition-transform hover:-translate-y-1"
             >
               <div className="relative h-64">
@@ -93,7 +93,7 @@ export default function PopularDestinations() {
         
         <div className="mt-8 text-center md:hidden">
           <Link
-            href="/destinations"
+            href="/explore"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-white hover:bg-primary/90"
           >
             View All Destinations

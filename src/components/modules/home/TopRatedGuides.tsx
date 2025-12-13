@@ -120,10 +120,10 @@ export default function TopRatedGuides() {
         
         <div className="mt-12 text-center">
           <Link
-            href="/guides"
+            href="/explore?role=GUIDE"
             className="inline-flex items-center gap-2 rounded-full border-2 border-primary px-8 py-3 font-medium text-primary hover:bg-primary hover:text-white"
           >
-            Browse All Guides
+            Browse All Guides listings
           </Link>
         </div>
       </div>
