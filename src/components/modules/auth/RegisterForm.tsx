@@ -102,7 +102,6 @@ const RegisterForm = () => {
             <FieldLabel>Register as</FieldLabel>
             <RadioGroup
               defaultValue={selectedRole}
-              name='role'
               onValueChange={setSelectedRole} // Update state on change
               className='flex flex-col space-y-2'>
               <div className='flex items-center space-x-2'>
@@ -118,6 +117,7 @@ const RegisterForm = () => {
                 </Label>
               </div>
             </RadioGroup>
+            <input type="hidden" name="role" value={selectedRole} />
             <InputFieldError field='role' state={state} />
           </Field>
         </div>
