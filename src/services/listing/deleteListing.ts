@@ -16,7 +16,7 @@ export const deleteListing = async (id: string) => {
     });
     const result = await res.json();
     if (result.success) {
-      revalidateTag("listings");
+      revalidateTag("listings", { expire: 0 });
       return result;
     } else {
       return { success: false, message: result.message || "Failed to delete listing" };

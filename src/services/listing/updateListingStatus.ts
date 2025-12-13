@@ -18,7 +18,7 @@ export const updateListingStatus = async (id: string, status: "ACTIVE" | "BLOCKE
     });
     const result = await res.json();
     if (result.success) {
-      revalidateTag("listings");
+      revalidateTag("listings", { expire: 0 });
       return result;
     } else {
       return { success: false, message: result.message || "Failed to update status" };
