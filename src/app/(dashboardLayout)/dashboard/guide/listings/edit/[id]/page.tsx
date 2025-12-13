@@ -5,8 +5,6 @@ import { notFound } from "next/navigation";
 async function getListingDetails(id: string) {
   const res = await serverFetch.get(`/listings/${id}`);
   const result = await res.json();
-
-  console.log(result, "from line 9: ");
   if (result?.success) {
     return result.data;
   }
