@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-    MapPin,
-    LayoutDashboard,
-    ListChecks,
-    CalendarCheck, Users,
-    Globe,
-    Star, Menu, CreditCard
+  MapPin,
+  LayoutDashboard,
+  ListChecks,
+  CalendarCheck, Users,
+  Globe,
+  Star, Menu, CreditCard
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ export default function AppSidebar() {
   );
 
   const SidebarContent = () => (
-    <div className='flex h-full flex-col gap-4'>
+    <div className='flex h-full flex-col gap-4 h-screen overflow-y-auto'>
       <div className='flex h-14 items-center border-b px-6'>
         <Link href='/' className='flex items-center gap-2 font-semibold'>
           <MapPin className='h-6 w-6 text-primary' />
