@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import ExploreFilters from "@/components/modules/explore/ExploreFilters";
-import TourList from "@/components/modules/explore/TourList";
 import { getListings } from "@/services/listing/listing.service";
 import { serverFetch } from "@/lib/server-fetch";
+import ExploreContent from "@/components/modules/explore/ExploreContent";
 
 export const metadata: Metadata = {
   title: "Explore Tours - Tourify",
@@ -74,9 +74,9 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             <ExploreFilters categories={categories} languages={languages} />
           </div>
 
-          {/* Tour List */}
+          {/* Tour List & Map */}
           <div className="lg:col-span-3">
-            <TourList listingsData={listingsData} />
+             <ExploreContent listingsData={listingsData} />
           </div>
         </div>
       </div>

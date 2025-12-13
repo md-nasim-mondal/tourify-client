@@ -69,8 +69,8 @@ const refreshAccessToken = async (): Promise<string | null> => {
     if (result.success && result.data?.accessToken) {
       await setCookie("accessToken", result.data.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production" || true,
-        sameSite: "none",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 60 * 60 * 24, // 24 hours
         path: "/",
       });
@@ -106,7 +106,7 @@ const serverFetchHelper = async (
     });
 
     if (token) {
-      requestHeaders["Authorization"] = `${token}`;
+      requestHeaders["Authorization"] = `Bearer ${token}`;
     }
 
     if (
@@ -124,10 +124,6 @@ const serverFetchHelper = async (
       !(requestBody instanceof FormData)
     ) {
       requestBody = JSON.stringify(requestBody);
-    }
-    
-    if (restOptions.body && requestBody !== restOptions.body) {
-      delete finalRestOptions.body;
     }
 
     const response = await fetch(`${envVariables.BASE_API_URL}${endpoint}`, {
@@ -161,7 +157,7 @@ const serverFetchHelper = async (
               try {
                 const retryResponse = await serverFetchHelper(
                   endpoint,
-                  { ...options, accessToken: newToken }, // Retry with new token
+                  { ...options, accessToken: newToken },
                   retryCount + 1
                 );
                 resolve(retryResponse);
@@ -180,7 +176,6 @@ const serverFetchHelper = async (
     return response;
   };
 
-  // Prioritize token from options, then from cookie
   const token = optionsToken || (await getCookie("accessToken"));
   return makeRequest(token);
 };

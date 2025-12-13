@@ -17,6 +17,7 @@ type Booking = {
   id: string;
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
   date: string;
+  alreadyReviewed?: boolean;
   listing: {
     id: string;
     title: string;
@@ -79,7 +80,7 @@ export default async function TouristBookingsPage() {
             booking.payment?.status !== "PAID" && (
               <CancelBookingButton bookingId={booking.id} />
             )}
-          {booking.status === "CONFIRMED" &&
+          {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") &&
             booking.payment?.status !== "PAID" && (
               <Button asChild size='sm'>
                 <Link href={`/dashboard/tourist/payments/${booking.id}`}>
@@ -99,7 +100,7 @@ export default async function TouristBookingsPage() {
               Download Receipt
             </a>
           )}
-          {booking.status === "COMPLETED" && (
+          {booking.status === "COMPLETED" && !booking.alreadyReviewed && (
             <Button asChild size='sm' variant='outline'>
               <Link href={`/dashboard/tourist/reviews/new/${booking.id}`}>
                 Leave a Review

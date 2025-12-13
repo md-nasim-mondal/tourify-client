@@ -69,7 +69,9 @@ export default async function TouristDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Spent</p>
-                <p className="text-2xl font-bold">${"---"}</p>
+                <p className="text-2xl font-bold">
+                  ${Number(metadata?.totalSpend || 0).toFixed(2)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-500" />
             </div>
