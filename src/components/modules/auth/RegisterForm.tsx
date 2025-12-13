@@ -27,7 +27,7 @@ const RegisterForm = () => {
         toast.error(state.message);
       } else if (state.success && state.redirectTo) {
         toast.success("Registration successful! Check your email to verify.");
-        router.push(state.redirectTo);
+        router.push("/");
       }
     }
   }, [state, router]);
