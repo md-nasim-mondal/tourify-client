@@ -1,19 +1,15 @@
 import { envVariables } from "@/lib/env";
-import { cookies } from "next/headers";
+import { getMyPayments } from "@/services/payment/getMyPayments";
+
+interface Payment {
+  id: string;
+  status: string;
+  amount: number;
+  booking?: { listing?: { title?: string } };
+}
 
 export default async function TouristPaymentsPage() {
-  const token = (await cookies()).get("accessToken")?.value;
-  const res = await fetch(`${envVariables.BASE_API_URL}/payments`, {
-    cache: "no-store",
-    headers: token ? { authorization: token } : undefined,
-  });
-  const json = await res.json();
-  const payments: {
-    id: string;
-    status: string;
-    amount: number;
-    booking?: { listing?: { title?: string } };
-  }[] = json?.data || [];
+  const { data: payments } = await getMyPayments() as { data: Payment[] };
 
   return (
     <div className='max-w-6xl mx-auto py-8 px-4'>
