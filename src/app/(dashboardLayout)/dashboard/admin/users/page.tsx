@@ -78,7 +78,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
               <TableHead>User Details</TableHead>
               <TableHead>Current Role</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className='text-right'>Management</TableHead>
+              <TableHead className='text-center'>Management</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,7 +102,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                       {user.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className='text-right'>
+                  <TableCell className='text-center'>
                     <UserManagementActions user={user} />
                   </TableCell>
                 </TableRow>
