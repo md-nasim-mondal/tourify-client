@@ -47,7 +47,7 @@ export default function UserManagementActions({ user }: UserManagementActionsPro
     };
 
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
                 <Select value={role} onValueChange={setRole}>
                     <SelectTrigger className="w-[140px]">

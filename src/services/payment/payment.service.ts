@@ -3,6 +3,7 @@
 
 import { serverFetch } from "@/lib/server-fetch";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export const initiatePayment = async (formData: FormData) => {
   const data = {
@@ -52,6 +53,9 @@ export const releasePayout = async (formData: FormData) => {
       headers: { "Content-Type": "application/json" },
     });
     const result = await res.json();
+    if (result.success) {
+      revalidatePath("/dashboard/admin/payments");
+    }
     return result;
   } catch (err: any) {
     return {
