@@ -68,7 +68,7 @@ export default function Navbar() {
               { href: "/dashboard/admin/bookings", label: "Manage Bookings" },
             ]
           : []),
-        { href: "/profile/me", label: "Profile", icon: Settings },
+        { href: "dashboard/profile/me", label: "Profile", icon: Settings },
       ]
     : [];
 

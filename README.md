@@ -1,507 +1,175 @@
-# Tourify Client - Next.js Frontend
+# Tourify - Local Guide Platform
 
-Modern, responsive Next.js 16 application for the Tourify platform. Connects travelers with local guides for authentic experiences.
+## 🚀 Project Overview
+**Tourify** connects travelers with passionate local experts who offer authentic, personalized experiences. Unlike generic tour agencies, this platform empowers individuals to share their city’s hidden gems, culture, and stories. Travelers can find guides who match their interests—whether for a food crawl, a photography walk, or a historical tour—and explore a destination like a local.
 
-**Live Demo**: [Your Vercel Link]  
-**API Base**: [Your Backend URL]
+This project democratizes travel guiding, allowing locals to monetize their knowledge and travelers to access unique, off-the-beaten-path experiences.
 
----
-
-## 📦 Project Structure
-
-```
-src/
-├── app/                      # Next.js App Router
-│   ├── (commonLayout)/       # Public pages with navbar/footer
-│   │   ├── (public)/         # Public routes
-│   │   │   ├── (auth)/       # Auth pages (login, register, verify)
-│   │   │   ├── explore/      # Tour exploration
-│   │   │   ├── tours/        # Tour listings and details
-│   │   │   ├── about/        # About page
-│   │   │   └── page.tsx      # Home page
-│   │   └── profile/          # User profiles
-│   ├── (dashboardLayout)/    # Protected dashboard pages
-│   │   └── dashboard/        # Role-based dashboards
-│   │       ├── tourist/      # Tourist dashboard
-│   │       ├── guide/        # Guide dashboard
-│   │       └── admin/        # Admin dashboard
-│   ├── layout.tsx            # Root layout
-│   ├── error.tsx             # Global error boundary
-│   └── not-found.tsx         # 404 page
-├── components/               # Reusable React components
-│   ├── modules/              # Feature-specific components
-│   │   ├── auth/             # Authentication forms
-│   │   ├── home/             # Home page sections
-│   │   ├── layout/           # Navbar, Footer
-│   │   ├── dashboard/        # Dashboard components
-│   │   ├── explore/          # Search/filter components
-│   │   ├── listing/          # Listing components
-│   │   └── ...               # Other feature modules
-│   ├── shared/               # Shared components (InputFieldError, etc)
-│   └── ui/                   # UI primitives (Button, Card, Input, etc)
-├── context/                  # React Context (i18n, etc)
-├── lib/                      # Utility functions
-│   ├── auth-utils.ts         # Auth helpers
-│   ├── env.ts                # Environment variables
-│   ├── server-fetch.ts       # Server-side fetch wrapper
-│   ├── zodValidator.ts       # Zod validation helper
-│   └── utils.ts              # General utilities
-├── services/                 # API service functions
-│   ├── auth/                 # Auth API calls
-│   ├── booking/              # Booking API calls
-│   ├── listing/              # Listing API calls
-│   ├── payment/              # Payment API calls
-│   └── ...                   # Other services
-├── types/                    # TypeScript interfaces
-│   └── index.ts              # Type definitions
-├── zod/                      # Zod validation schemas
-│   └── auth.validation.ts    # Auth validation schemas
-└── public/                   # Static assets
-```
+### 🌟 Key Objectives
+- **Connect Travelers & Guides**: Bridging the gap between tourists and local experts.
+- **Booking System**: Secure and seamless booking workflow for tours.
+- **Trust & Verification**: Detailed profiles, reviews, and ratings.
+- **User-Friendly Interface**: Engaging UI/UX for easy exploration and management.
 
 ---
 
-## 🚀 Quick Start
+## 🔗 Live Links & Repository
 
-### Installation
+| Type | Link |
+| :--- | :--- |
+| **Client Live Deployment** | [Your Client Live Deployment Link] |
+| **Server Live Deployment** | [Your Server Live Deployment Link] |
+| **GitHub Client Repo** | [Your GitHub Client Repo Link] |
+| **GitHub Server Repo** | [Your GitHub Server Repo Link] |
+| **Video Explanation** | [Your Video Explanation Link] |
 
+---
+
+## 🛠️ Technology Stack
+
+| Category | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 15, Tailwind CSS, Shadcn UI, Framer Motion, TypeScript |
+| **Backend** | Node.js, Express.js, Prisma ORM |
+| **Database** | PostgreSQL |
+| **Authentication** | JWT (JSON Web Tokens), NextAuth (Optional) |
+| **Payment** | SSLCommerz / Stripe |
+| **State Management** | React Context / Zustand |
+| **Validation** | Zod |
+| **Deployment** | Vercel (Client), Render/Railway (Server) |
+
+---
+
+## ✨ Key Features
+
+### 1. User Authentication & Roles
+- **Secure Registration/Login**: Email & Password based login with JWT security.
+- **Role-Based Access**:
+    - **Tourist**: Browse and book tours, manage bookings, review guides.
+    - **Guide**: Create services/tours, manage availability, accept bookings.
+    - **Admin**: Full control over users, listings, and bookings.
+
+### 2. User Profile Management
+- **Universal Fields**: Name, Profile Picture, Bio, Languages.
+- **Guide Specifics**: Expertise areas, Daily rates.
+- **Tourist Specifics**: Travel preferences.
+
+### 3. Tour Listing Management
+- **Create & Manage Tours**: Title, Description, Price, Duration, Meeting Point, Group Size.
+- **Rich Media**: Image uploads (Cloudinary/ImgBB).
+- **CRUD Operations**: Guides can edit or deactivate their listings.
+
+### 4. Search & Discovery
+- **Advanced Filtering**: Filter by City, Language, Category, and Price.
+- **Interactive Exploration**: Engaging listing cards and details.
+
+### 5. Booking & Payments
+- **Seamless Workflow**: Request -> Accept/Decline -> Confirm -> Complete.
+- **Secure Payments**: Integrated payment gateway for safe transactions.
+
+### 6. Reviews & Ratings
+- **Trust Building**: Tourists can rate and review guides after completed tours.
+
+---
+
+## 💻 Setup & Usage Instructions
+
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+- PostgreSQL Database URL
+
+### 1. Clone the Repositories
 ```bash
-# Install dependencies
-npm install
+# Clone Client
+git clone <your-client-serving-url>
+cd tourify-client
 
-# Create .env.local
-cat > .env.local << EOF
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
-NEXT_PUBLIC_JWT_SECRET=your_jwt_secret_here
-EOF
-
-# Run development server
-npm run dev
+# Clone Server (in a separate directory)
+git clone <your-server-repo-url>
+cd tourify-server
 ```
-
-Open [http://localhost:3000](http://localhost:3000) to view the app.
-
-### Build & Deploy
-
-```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-
-# Lint code
-npm run lint
-```
-
----
-
-## 🎨 Key Features
-
-✅ **User Authentication**
-
-- Email-based registration with verification
-- Secure login/logout
-- JWT token management
-- Password reset via email
-- Role-based access control (Tourist/Guide/Admin)
-
-✅ **Tour Management**
-
-- Browse and search tours with filters
-- Create tour listings (Guides only)
-- Edit and delete listings
-- Upload multiple tour photos
-- Set pricing and availability
-
-✅ **Booking System**
-
-- Request tours
-- Real-time booking status updates
-- Cancel bookings
-- Track booking history
-
-✅ **Payments**
-
-- Stripe integration for credit cards
-- SSLCommerz for local payments
-- Secure payment processing
-- Payment history tracking
-
-✅ **Reviews & Ratings**
-
-- Leave reviews after tours
-- Rate guides (1-5 stars)
-- View guide ratings
-
-✅ **User Dashboards**
-
-- Tourist: Manage bookings, reviews, payments
-- Guide: Create listings, manage bookings, view earnings
-- Admin: Manage users, listings, bookings, payments
-
-✅ **Home Page (7 Sections)**
-
-1. Hero section with search
-2. How it works (3-step process)
-3. Popular destinations
-4. Top-rated guides
-5. Tour categories
-6. Customer testimonials
-7. Call-to-action for guides
-
----
-
-## 🎨 Key Pages
-
-### Public Pages
-
-- **`/`** - Home page with hero, featured tours, guides, and CTA
-- **`/explore`** - Browse tours with filters
-- **`/tours/:id`** - Tour details and booking widget
-- **`/register`** - Sign up (Tourist/Guide)
-- **`/login`** - User login
-- **`/verify-email`** - Email verification after registration
-- **`/profile/:id`** - Public user profiles
-- **`/about`** - About the platform
-
-### Protected Pages (Tourist)
-
-- **`/dashboard/tourist`** - Trip overview and bookings
-- **`/dashboard/tourist/bookings`** - Manage bookings
-- **`/dashboard/tourist/reviews`** - Written reviews
-- **`/dashboard/tourist/payments`** - Payment history
-- **`/profile/me`** - Profile settings
-
-### Protected Pages (Guide)
-
-- **`/dashboard/guide`** - Dashboard overview
-- **`/dashboard/guide/listings`** - Manage tours
-- **`/dashboard/guide/listings/create`** - Create new tour
-- **`/dashboard/guide/listings/:id/edit`** - Edit tour
-- **`/profile/me`** - Profile and expertise settings
-
-### Protected Pages (Admin)
-
-- **`/dashboard/admin`** - Admin overview
-- **`/dashboard/admin/users`** - User management
-- **`/dashboard/admin/listings`** - Listing moderation
-- **`/dashboard/admin/bookings`** - Booking oversight
-- **`/dashboard/admin/payments`** - Payment analytics
-
-### Special Pages
-
-- **`/payment/success`** - Payment confirmation
-- **`/payment/fail`** - Payment failure
-- **`/404`** - Not found
-- **`/error`** - Error boundary page
-
----
-
-## 🔐 Authentication Flow
-
-1. **Register**: User selects role (Tourist/Guide)
-2. **Verification**: Email sent with token link
-3. **Verify Email**: Visit `/verify-email?token=xyz`
-4. **Login**: Use credentials to authenticate
-5. **Session**: JWT tokens stored in secure cookies
-6. **Auto-refresh**: Automatic token refresh on expiry
-
----
-
-## 🛠️ Development Features
-
-### Forms & Validation
-
-- React Hook Form for form management
-- Zod for schema validation
-- Real-time field-level error display
-- Conditional fields based on user role
-
-### State Management
-
-- React Hooks (useState, useContext)
-- Context API for global state
-- Server-side data fetching where possible
-
-### API Integration
-
-- Custom fetch wrapper with token handling
-- Automatic request/response logging
-- Token refresh on 401 errors
-- Centralized error handling
-
-### UI Components
-
-- Shadcn/ui components via Radix UI
-- Custom styled Button, Card, Input, etc.
-- Accessible forms and inputs
-- Responsive grid layouts
-
-### Notifications
-
-- Sonner Toast notifications
-- Success, error, info, warning toasts
-- Custom toast styles
-
----
-
-## 📱 Responsive Design
-
-- Mobile-first approach
-- Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
-- Tailwind CSS for styling
-- Touch-friendly interactions
-- Proper spacing and typography
-
----
-
-## 🌐 Environment Variables
-
-Required `.env.local` variables:
-
-```env
-# API Configuration
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
-
-# JWT (for client-side token verification)
-NEXT_PUBLIC_JWT_SECRET=your_jwt_secret_key
-
-# Optional
-NEXT_PUBLIC_APP_NAME=Tourify
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
----
-
-## 🔄 API Client
-
-The `server-fetch` utility provides:
-
-```typescript
-import { serverFetch } from "@/lib/server-fetch";
-
-// GET request
-const data = await serverFetch.get("/listings?limit=10");
-
-// POST request
-const result = await serverFetch.post("/bookings", {
-  body: JSON.stringify({ listingId: "123", date: "2025-01-15" }),
-  headers: { "Content-Type": "application/json" },
-});
-
-// PUT request with auth
-const updated = await serverFetch.put("/listings/456", {
-  body: JSON.stringify({ title: "New Title" }),
-});
-
-// DELETE request
-await serverFetch.delete("/bookings/789");
-```
-
-Features:
-
-- Automatic JWT token injection
-- Token refresh on expiry
-- Proper error handling
-- Request/response logging
-- Cookie management
-
----
-
-## 🎯 Performance Optimizations
-
-- Code splitting with Next.js
-- Image optimization with next/image
-- Server-side rendering for public pages
-- Client-side rendering for interactive features
-- CSS-in-JS with Tailwind (no runtime overhead)
-- Preloading critical routes
-
----
-
-## 🧪 Testing & Linting
-
-```bash
-# Lint with ESLint
-npm run lint
-
-# Fix linting issues
-npm run lint -- --fix
-
-# Type checking
-npx tsc --noEmit
-```
-
----
-
-## 📦 Dependencies
-
-### Core
-
-- `next` - React framework
-- `react` - UI library
-- `typescript` - Type safety
-
-### Styling
-
-- `tailwindcss` - Utility-first CSS
-- `tailwind-merge` - Merge Tailwind classes
-- `class-variance-authority` - Component variants
-
-### Forms & Validation
-
-- `react-hook-form` - Form state management
-- `zod` - Schema validation
-- `@hookform/resolvers` - Form validation resolvers
-
-### UI Components
-
-- `@radix-ui/*` - Accessible components
-- `lucide-react` - Icon library
-
-### HTTP & Auth
-
-- `axios` - HTTP client
-- `jwt-decode` - JWT decoding
-- `jsonwebtoken` - JWT utilities
-- `js-cookie` - Cookie management
-
-### Notifications
-
-- `sonner` - Toast notifications
-
-### Animations
-
-- `framer-motion` - Animation library
-- `swiper` - Carousel component
-
-### Date & Time
-
-- `date-fns` - Date utilities
-- `react-day-picker` - Calendar component
-
----
-
-## 🚀 Deployment to Vercel
-
-```bash
-# Push to GitHub
-git push origin main
-
-# Connect to Vercel
-# 1. Go to vercel.com
-# 2. Import your repository
-# 3. Add environment variables in Project Settings
-# 4. Deploy
-
-# Or use Vercel CLI
-npm i -g vercel
-vercel --prod
-```
-
----
-
-## 🐛 Common Issues
-
-### CORS Errors
-
-- Ensure backend CORS is configured
-- Check `NEXT_PUBLIC_API_BASE_URL` matches backend
-
-### Authentication Failures
-
-- Clear cookies and localStorage
-- Check token expiry
-- Verify JWT_SECRET matches backend
-
-### Image Loading Issues
-
-- Configure Cloudinary domain in next.config.ts
-- Check image URLs are accessible
-
-### Form Validation
-
-- Ensure Zod schemas match backend validation
-- Check field names in form data
-
----
-
-## 📚 Documentation
-
-- [Next.js Docs](https://nextjs.org/docs)
-- [React Docs](https://react.dev)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Zod Documentation](https://zod.dev)
-- [Radix UI](https://www.radix-ui.com)
-
----
-
-## 🤝 Contributing
-
-1. Create feature branch: `git checkout -b feature/feature-name`
-2. Commit changes: `git commit -am 'Add feature'`
-3. Push to branch: `git push origin feature/feature-name`
-4. Create Pull Request
-
----
-
-## 📄 License
-
-Proprietary - All rights reserved
-
----
-
-## 📞 Support
-
-- Email: support@tourify.com
-- Issue Tracker: GitHub Issues
-- Documentation: See main README.md
-
----
-
-_Last Updated: December 2025_
 
 ### 2. Install Dependencies
-
+Run this in both `tourify-client` and `tourify-server` directories:
 ```bash
 npm install
 ```
 
-### 3. Set Up Environment Variables
+### 3. Environment Configuration
 
-Create a `.env.local` file in the root of the `tourify-client` directory and add the following variables.
-
+**Client (`tourify-client/.env.local`):**
 ```env
-# URL of the backend server
-NEXT_PUBLIC_BASE_API_URL=<Your Backend Live URL or http://localhost:5000/api/v1>
-
-# The base URL of this client application (for payment redirects, etc.)
-NEXT_PUBLIC_CLIENT_URL=<Your Client Live URL or http://localhost:3000>
-
-# JWT Secret for verifying tokens (must match the server's secret)
-JWT_SECRET=<Your JWT Secret - must match server's JWT secret>
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api/v1
+NEXT_PUBLIC_JWT_SECRET=your_jwt_secret
 ```
 
-### 4. Run the Development Server
+**Server (`tourify-server/.env`):**
+```env
+PORT=5000
+DATABASE_URL=your_postgresql_url
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+```
 
+### 4. Run the Application
+**Start Backend:**
 ```bash
+cd tourify-server
 npm run dev
 ```
 
-The application will be available at [http://localhost:3000](http://localhost:3000).
+**Start Frontend:**
+```bash
+cd tourify-client
+npm run dev
+```
+Access the client at `http://localhost:3000` and server at `http://localhost:5000`.
 
 ---
 
-## Admin Credentials
+## 🏗️ Project Structure
 
-To access the admin dashboard and its features, use the following credentials:
+### Client Structure (`tourify-client`)
+```
+src/
+├── app/
+│   ├── (auth)/             # Login, Register
+│   ├── (public)/           # Home, Explore, Tours
+│   ├── (dashboard)/        # Protected Routes (Tourist, Guide, Admin)
+│   ├── components/         # Reusable UI Components
+│   ├── lib/                # Utilities, API helpers
+│   └── services/           # API Service calls
+```
+
+### Server Structure (`tourify-server`)
+```
+src/
+├── app/
+│   ├── modules/            # Feature modules (Auth, Users, Listings, Bookings)
+│   │   ├── auth/           # Authentication logic
+│   │   ├── user/           # User management
+│   │   ├── listing/        # Tour listings
+│   │   └── booking/        # Booking system
+│   ├── routes/             # Main API router
+│   └── middleware/         # Auth & Validation middleware
+├── config/                 # Environment config
+└── shared/                 # Shared specific types/utils
+```
+
+---
+
+## 🔑 Admin Credentials
+Use these credentials to test Admin features:
 
 - **Email:** `admin@tourify.com`
-- **Password:** `super.secret.password`
+- **Password:** `123456`
+
+*(Replace with your actual admin credentials if different)*
 
 ---
 
-## Video Explanation
-
-[Your Video Explanation Link]
+## 📝 Submission Details
+**Assignment:** Assignment 8 - Batch 5
+**Project Name:** Tourify
+**Student Name:** Md. Nasim Mondal

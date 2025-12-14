@@ -129,7 +129,7 @@ export default function AppSidebar() {
   );
 
   const SidebarContent = () => (
-    <div className='flex h-full flex-col gap-4 h-screen overflow-y-auto'>
+    <div className='flex h-full flex-col gap-4 h-screen overflow-y-auto sticky top-0'>
       <div className='flex h-14 items-center border-b px-6'>
         <Link href='/' className='flex items-center gap-2 font-semibold'>
           <MapPin className='h-6 w-6 text-primary' />

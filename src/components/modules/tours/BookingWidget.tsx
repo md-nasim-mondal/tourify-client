@@ -1,15 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Users, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ interface BookingWidgetProps {
   listing: {
     id: string;
     price: number;
+    duration: number;
     maxGroupSize: number;
     guide: { id: string };
     location?: string;
@@ -34,51 +35,49 @@ export default function BookingWidget({
   accessToken,
 }: BookingWidgetProps) {
   const [date, setDate] = useState<Date | undefined>();
-  const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [groupSize, setGroupSize] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
-  const [bookedSlots, setBookedSlots] = useState<Record<number, number>>({});
+  const [availability, setAvailability] = useState<{ available: number; maxGroupSize: number } | null>(null);
   const router = useRouter();
 
-  // Fetch guide's booked dates (to disable full days if we implemented that check)
   useEffect(() => {
-    const fetchBookedDates = async () => {
-      if (!listing.guide?.id) return;
-      // We keep this for now, though logic might need adjustment if we only care about slots.
-      // Ideally "booked dates" implies "NO availability at all".
-    };
-    // fetchBookedDates(); // simplified for now to focus on slots
-  }, [accessToken, listing?.guide?.id]);
-
-  // Fetch slots for selected date
-  useEffect(() => {
-    const fetchSlots = async () => {
+    const fetchAvailability = async () => {
       if (!date) {
-        setBookedSlots({});
+        setAvailability(null);
         return;
       }
       try {
+        // We reuse the existing endpoint structure but it now returns daily summary
         const res = await serverFetch.get(
           `/bookings/slots/${listing.id}?date=${date.toISOString()}`
         );
         if (res.ok) {
            const json = await res.json();
-           setBookedSlots(json.data || {});
+           // Backend returns { date, totalBooked, maxGroupSize, available }
+           if (json.data) {
+             setAvailability(json.data);
+             // Reset group size to 1 if available > 0, else 0? 
+             // Or ensure current groupSize isn't > available
+             if (json.data.available < groupSize) {
+                setGroupSize(Math.max(1, json.data.available)); 
+             }
+           }
         }
       } catch (error) {
-        console.error("Failed to fetch slots", error);
+        console.error("Failed to fetch availability", error);
+        setAvailability(null);
       }
     };
-    fetchSlots();
-    setSelectedHour(null); // Reset hour when date changes
+    fetchAvailability();
   }, [date, listing.id]);
 
   const totalPrice = listing?.price * groupSize;
+  const tourDuration = listing?.duration || 1;
+  const maxBookable = availability ? availability.available : listing.maxGroupSize;
 
   const handleBooking = async () => {
-    if (!date || selectedHour === null) {
-      toast.error("Please select a date and time");
+    if (!date) {
+      toast.error("Please select a date");
       return;
     }
     if (!accessToken) {
@@ -88,8 +87,9 @@ export default function BookingWidget({
 
     setIsLoading(true);
     try {
+      // Set to noon to avoid timezone date shifting issues
       const bookingDate = new Date(date);
-      bookingDate.setHours(selectedHour, 0, 0, 0);
+      bookingDate.setHours(12, 0, 0, 0);
 
       const bookingResult = await createBooking(
         {
@@ -115,18 +115,6 @@ export default function BookingWidget({
     }
   };
 
-  const getSlotStatus = (hour: number) => {
-    const usage = bookedSlots[hour] || 0;
-    const remaining = listing.maxGroupSize - usage;
-    return {
-       available: remaining >= groupSize,
-       remaining
-    };
-  };
-
-  // Generate 7 AM to 5 PM slots
-  const timeSlots = Array.from({ length: 11 }, (_, i) => i + 7);
-
   return (
     <Card className='sticky top-24 border-none shadow-none lg:border lg:shadow-sm'>
       <CardContent className='p-0 lg:p-6'>
@@ -135,9 +123,11 @@ export default function BookingWidget({
             ${listing.price}
           </div>
           <div className='text-gray-600'>per person</div>
+          <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+             <Clock className="h-3 w-3" />
+             {tourDuration} hours duration
+          </div>
         </div>
-
-        {/* Mobile Price Header (Sticky?) - keeping simple for now */}
 
         <div className="space-y-6">
             {/* Group Size */}
@@ -157,13 +147,12 @@ export default function BookingWidget({
                 <Input
                 type='number'
                 min='1'
-                max={listing.maxGroupSize}
+                max={maxBookable}
                 value={groupSize}
                 onChange={(e) => {
                     const value = parseInt(e.target.value);
-                    if (!isNaN(value) && value >= 1 && value <= listing.maxGroupSize) {
+                    if (!isNaN(value) && value >= 1 && value <= maxBookable) {
                          setGroupSize(value);
-                         setSelectedHour(null); // Reset selection if size changes (capacity might fail)
                     }
                 }}
                 className='text-center w-20'
@@ -171,14 +160,20 @@ export default function BookingWidget({
                 <Button
                 size='icon'
                 variant='outline'
-                onClick={() => setGroupSize(Math.min(listing.maxGroupSize, groupSize + 1))}
-                disabled={groupSize >= listing.maxGroupSize}>
+                onClick={() => setGroupSize(Math.min(maxBookable, groupSize + 1))}
+                disabled={groupSize >= maxBookable}>
                 +
                 </Button>
             </div>
-            <p className='text-sm text-gray-500'>
-                Max capacity: {listing.maxGroupSize}
-            </p>
+            
+            <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Max capacity: {listing.maxGroupSize}</span>
+                {availability && (
+                    <span className={`font-medium ${availability.available === 0 ? 'text-destructive' : 'text-primary'}`}>
+                        {availability.available > 0 ? `${availability.available} spots left` : 'Fully Booked'}
+                    </span>
+                )}
+            </div>
             </div>
 
             {/* Date Picker */}
@@ -205,52 +200,15 @@ export default function BookingWidget({
             </Popover>
             </div>
 
-            {/* Time Slots */}
-            {date && (
-                <div className='space-y-3 animate-in fade-in slide-in-from-top-4 duration-300'>
-                    <Label>Select Time (7 AM - 5 PM)</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                        {timeSlots.map((hour) => {
-                            const { available, remaining } = getSlotStatus(hour);
-                            const isSelected = selectedHour === hour;
-                            
-                            // Format hour (e.g., 9:00 AM)
-                            const timeLabel = new Date(new Date().setHours(hour, 0)).toLocaleTimeString([], {
-                                hour: 'numeric',
-                                minute: '2-digit'
-                            });
-
-                            return (
-                                <button
-                                    key={hour}
-                                    onClick={() => available && setSelectedHour(hour)}
-                                    disabled={!available}
-                                    className={`
-                                        flex flex-col items-center justify-center p-2 rounded-md border text-sm transition-all
-                                        ${isSelected 
-                                            ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary ring-offset-1' 
-                                            : 'border-input hover:bg-accent hover:text-accent-foreground'}
-                                        ${!available && 'opacity-50 cursor-not-allowed bg-muted'}
-                                    `}
-                                >
-                                    <span className="font-medium">{timeLabel}</span>
-                                    {available ? (
-                                        <span className="text-[10px] text-muted-foreground">{remaining} left</span>
-                                    ) : (
-                                        <span className="text-[10px] text-destructive">Full</span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
             {/* Price Summary */}
             <div className='space-y-3 rounded-lg bg-gray-50 p-4'>
             <div className='flex justify-between text-sm'>
                 <span>${listing.price} × {groupSize} person(s)</span>
                 <span>${listing.price * groupSize}</span>
+            </div>
+             <div className='flex justify-between text-sm text-gray-500'>
+                <span>Duration</span>
+                <span>{tourDuration} hours</span>
             </div>
             <div className='border-t pt-3'>
                 <div className='flex justify-between font-bold'>
@@ -263,10 +221,10 @@ export default function BookingWidget({
             {/* Booking Button */}
             <Button
             onClick={handleBooking}
-            disabled={!date || selectedHour === null || isLoading}
+            disabled={!date || isLoading || (availability ? availability.available === 0 : false)}
             className='w-full'
             size='lg'>
-            {isLoading ? "Processing..." : "Request Booking"}
+            {isLoading ? "Processing..." : (availability && availability.available === 0 ? "Fully Booked" : "Request Booking")}
             </Button>
         </div>
       </CardContent>
