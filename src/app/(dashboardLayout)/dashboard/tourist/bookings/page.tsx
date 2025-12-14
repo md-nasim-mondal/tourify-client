@@ -100,7 +100,7 @@ export default async function TouristBookingsPage() {
               Download Receipt
             </a>
           )}
-          {booking.status === "COMPLETED" && !booking.alreadyReviewed && (
+          {booking.status === "COMPLETED" && booking.payment?.status === "PAID" && !booking.alreadyReviewed && (
             <Button asChild size='sm' variant='outline'>
               <Link href={`/dashboard/tourist/reviews/new/${booking.id}`}>
                 Leave a Review

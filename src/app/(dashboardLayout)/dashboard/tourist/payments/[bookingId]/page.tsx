@@ -16,7 +16,7 @@ async function getBookingDetails(id: string) {
 export default async function PaymentPage({ params }: { params: Promise<{ bookingId: string }> }) {
     const booking = await getBookingDetails((await params).bookingId);
     const totalPrice = booking.totalPrice || booking.listing.price;
-    const canPay = booking.status === "CONFIRMED";
+    const canPay = booking.status === "CONFIRMED" || booking.status === "COMPLETED";
 
     return (
         <div className="max-w-2xl mx-auto py-8 px-4">

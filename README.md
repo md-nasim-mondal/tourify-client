@@ -1,128 +1,175 @@
-# Tourify Client - Next.js Frontend
+# Tourify - Local Guide Platform
 
-Modern, responsive Next.js 16 application for the Tourify platform. Connects travelers with local guides for authentic experiences.
+## 🚀 Project Overview
+**Tourify** connects travelers with passionate local experts who offer authentic, personalized experiences. Unlike generic tour agencies, this platform empowers individuals to share their city’s hidden gems, culture, and stories. Travelers can find guides who match their interests—whether for a food crawl, a photography walk, or a historical tour—and explore a destination like a local.
 
-**Live Demo**: [Your Vercel Link]  
-**API Base**: [Your Backend URL]
+This project democratizes travel guiding, allowing locals to monetize their knowledge and travelers to access unique, off-the-beaten-path experiences.
+
+### 🌟 Key Objectives
+- **Connect Travelers & Guides**: Bridging the gap between tourists and local experts.
+- **Booking System**: Secure and seamless booking workflow for tours.
+- **Trust & Verification**: Detailed profiles, reviews, and ratings.
+- **User-Friendly Interface**: Engaging UI/UX for easy exploration and management.
 
 ---
 
-## 📦 Project Structure
+## 🔗 Live Links & Repository
 
+| Type | Link |
+| :--- | :--- |
+| **Client Live Deployment** | [Your Client Live Deployment Link] |
+| **Server Live Deployment** | [Your Server Live Deployment Link] |
+| **GitHub Client Repo** | [Your GitHub Client Repo Link] |
+| **GitHub Server Repo** | [Your GitHub Server Repo Link] |
+| **Video Explanation** | [Your Video Explanation Link] |
+
+---
+
+## 🛠️ Technology Stack
+
+| Category | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 15, Tailwind CSS, Shadcn UI, Framer Motion, TypeScript |
+| **Backend** | Node.js, Express.js, Prisma ORM |
+| **Database** | PostgreSQL |
+| **Authentication** | JWT (JSON Web Tokens), NextAuth (Optional) |
+| **Payment** | SSLCommerz / Stripe |
+| **State Management** | React Context / Zustand |
+| **Validation** | Zod |
+| **Deployment** | Vercel (Client), Render/Railway (Server) |
+
+---
+
+## ✨ Key Features
+
+### 1. User Authentication & Roles
+- **Secure Registration/Login**: Email & Password based login with JWT security.
+- **Role-Based Access**:
+    - **Tourist**: Browse and book tours, manage bookings, review guides.
+    - **Guide**: Create services/tours, manage availability, accept bookings.
+    - **Admin**: Full control over users, listings, and bookings.
+
+### 2. User Profile Management
+- **Universal Fields**: Name, Profile Picture, Bio, Languages.
+- **Guide Specifics**: Expertise areas, Daily rates.
+- **Tourist Specifics**: Travel preferences.
+
+### 3. Tour Listing Management
+- **Create & Manage Tours**: Title, Description, Price, Duration, Meeting Point, Group Size.
+- **Rich Media**: Image uploads (Cloudinary/ImgBB).
+- **CRUD Operations**: Guides can edit or deactivate their listings.
+
+### 4. Search & Discovery
+- **Advanced Filtering**: Filter by City, Language, Category, and Price.
+- **Interactive Exploration**: Engaging listing cards and details.
+
+### 5. Booking & Payments
+- **Seamless Workflow**: Request -> Accept/Decline -> Confirm -> Complete.
+- **Secure Payments**: Integrated payment gateway for safe transactions.
+
+### 6. Reviews & Ratings
+- **Trust Building**: Tourists can rate and review guides after completed tours.
+
+---
+
+## 💻 Setup & Usage Instructions
+
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+- PostgreSQL Database URL
+
+### 1. Clone the Repositories
+```bash
+# Clone Client
+git clone <your-client-serving-url>
+cd tourify-client
+
+# Clone Server (in a separate directory)
+git clone <your-server-repo-url>
+cd tourify-server
+```
+
+### 2. Install Dependencies
+Run this in both `tourify-client` and `tourify-server` directories:
+```bash
+npm install
+```
+
+### 3. Environment Configuration
+
+**Client (`tourify-client/.env.local`):**
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api/v1
+NEXT_PUBLIC_JWT_SECRET=your_jwt_secret
+```
+
+**Server (`tourify-server/.env`):**
+```env
+PORT=5000
+DATABASE_URL=your_postgresql_url
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+```
+
+### 4. Run the Application
+**Start Backend:**
+```bash
+cd tourify-server
+npm run dev
+```
+
+**Start Frontend:**
+```bash
+cd tourify-client
+npm run dev
+```
+Access the client at `http://localhost:3000` and server at `http://localhost:5000`.
+
+---
+
+## 🏗️ Project Structure
+
+### Client Structure (`tourify-client`)
 ```
 src/
-├── app/                      # Next.js App Router
-│   ├── (commonLayout)/       # Public pages with navbar/footer
-│   │   ├── (public)/         # Public routes
-│   │   │   ├── (auth)/       # Auth pages (login, register, verify)
-│   │   │   ├── explore/      # Tour exploration
-│   │   │   ├── tours/        # Tour listings and details
-│   │   │   ├── about/        # About page
-│   │   │   └── page.tsx      # Home page
-│   │   └── profile/          # User profiles
-│   ├── (dashboardLayout)/    # Protected dashboard pages
-│   │   └── dashboard/        # Role-based dashboards
-│   │       ├── tourist/      # Tourist dashboard
-│   │       ├── guide/        # Guide dashboard
-│   │       └── admin/        # Admin dashboard
-│   ├── layout.tsx            # Root layout
-│   ├── error.tsx             # Global error boundary
-│   └── not-found.tsx         # 404 page
-├── components/               # Reusable React components
-│   ├── modules/              # Feature-specific components
-│   │   ├── auth/             # Authentication forms
-│   │   ├── home/             # Home page sections
-│   │   ├── layout/           # Navbar, Footer
-│   │   ├── dashboard/        # Dashboard components
-│   │   ├── explore/          # Search/filter components
-│   │   ├── listing/          # Listing components
-│   │   └── ...               # Other feature modules
-│   ├── shared/               # Shared components (InputFieldError, etc)
-│   └── ui/                   # UI primitives (Button, Card, Input, etc)
-├── context/                  # React Context (i18n, etc)
-├── lib/                      # Utility functions
-│   ├── auth-utils.ts         # Auth helpers
-│   ├── env.ts                # Environment variables
-│   ├── server-fetch.ts       # Server-side fetch wrapper
-│   ├── zodValidator.ts       # Zod validation helper
-│   └── utils.ts              # General utilities
-├── services/                 # API service functions
-│   ├── auth/                 # Auth API calls
-│   ├── booking/              # Booking API calls
-│   ├── listing/              # Listing API calls
-│   ├── payment/              # Payment API calls
-│   └── ...                   # Other services
-├── types/                    # TypeScript interfaces
-│   └── index.ts              # Type definitions
-├── zod/                      # Zod validation schemas
-│   └── auth.validation.ts    # Auth validation schemas
-└── public/                   # Static assets
+├── app/
+│   ├── (auth)/             # Login, Register
+│   ├── (public)/           # Home, Explore, Tours
+│   ├── (dashboard)/        # Protected Routes (Tourist, Guide, Admin)
+│   ├── components/         # Reusable UI Components
+│   ├── lib/                # Utilities, API helpers
+│   └── services/           # API Service calls
+```
+
+### Server Structure (`tourify-server`)
+```
+src/
+├── app/
+│   ├── modules/            # Feature modules (Auth, Users, Listings, Bookings)
+│   │   ├── auth/           # Authentication logic
+│   │   ├── user/           # User management
+│   │   ├── listing/        # Tour listings
+│   │   └── booking/        # Booking system
+│   ├── routes/             # Main API router
+│   └── middleware/         # Auth & Validation middleware
+├── config/                 # Environment config
+└── shared/                 # Shared specific types/utils
 ```
 
 ---
 
-## 🚀 Quick Start
- 
- ### Prerequisites
- 
-  - Node.js (v18 or later)
-  - npm or yarn
-
- ### 1. Clone the Repository
- 
- ```bash
- git clone <repository-url>
- cd tourify-client
- ```
- 
- ### 2. Install Dependencies
- 
- ```bash
- npm install
- ```
- 
- ### 3. Set Up Environment Variables
- 
- Create a `.env.local` file in the root of the `tourify-client` directory.
- 
- ```env
- # API Configuration
- NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api/v1
- 
- # JWT (must match server's JWT_SECRET)
- NEXT_PUBLIC_JWT_SECRET=your_jwt_secret_key
- 
- # Optional
- NEXT_PUBLIC_APP_NAME=Tourify
- NEXT_PUBLIC_APP_URL=http://localhost:3000
- ```
- 
- ### 4. Run Development Server
- 
- ```bash
- npm run dev
- ```
- 
- Open [http://localhost:3000](http://localhost:3000) to view the app.
- 
- ### 5. Build for Production
-
- ```bash
- npm run build
- npm start
- ```
-
----
-
-## Admin Credentials
-
-To access the admin dashboard and its features, use the following credentials:
+## 🔑 Admin Credentials
+Use these credentials to test Admin features:
 
 - **Email:** `admin@tourify.com`
-- **Password:** `super.secret.password`
+- **Password:** `123456`
+
+*(Replace with your actual admin credentials if different)*
 
 ---
 
-## Video Explanation
-
-[Your Video Explanation Link]
+## 📝 Submission Details
+**Assignment:** Assignment 8 - Batch 5
+**Project Name:** Tourify
+**Student Name:** Md. Nasim Mondal
