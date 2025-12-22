@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Star, Users, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
+import ListingCard from "@/components/modules/listing/ListingCard";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Tour {
   id: string;
@@ -34,140 +38,126 @@ interface TourListProps {
 
 export default function TourList({ listingsData }: TourListProps) {
   const { data: tours, meta } = listingsData;
+  const searchParams = useSearchParams();
+
+  const createPageUrl = (pageNumber: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', pageNumber.toString());
+    return `/explore?${params.toString()}`;
+  };
 
   if (!tours || tours.length === 0) {
     return (
-      <div className='text-center py-12'>
-        <h3 className='text-lg font-semibold text-gray-900'>No tours found</h3>
-        <p className='mt-2 text-gray-600'>Try adjusting your filters</p>
+      <div className='flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500'>
+        <div className="relative h-40 w-40 mb-6 opacity-80 hover:opacity-100 transition-opacity">
+            <Image 
+               src="/placeholder-empty.png" 
+               alt="No tours found" 
+               fill 
+               className="object-contain"
+               onError={(e) => {
+                  // Fallback if image missing
+                  e.currentTarget.style.display = 'none';
+               }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+               <span className="text-6xl">🔍</span>
+            </div>
+        </div>
+        <h3 className='text-2xl font-bold text-foreground'>No tours found</h3>
+        <p className='mt-2 text-muted-foreground max-w-md'>
+          We couldn't find any tours matching your criteria. Try adjusting your filters or search term.
+        </p>
+        <Button 
+          variant="outline" 
+          className="mt-6" 
+          onClick={() => window.location.href = '/explore'}
+        >
+          Clear all filters
+        </Button>
       </div>
     );
   }
 
+  const totalPages = Math.ceil(meta.total / meta.limit);
+
   return (
     <div>
       <div className='mb-6 flex items-center justify-between'>
-        <p className='text-gray-600'>
-          Showing {tours.length} of {meta.total} tours
+        <p className='text-muted-foreground font-medium'>
+          Showing <span className="text-foreground font-bold">{tours.length}</span> of <span className="text-foreground font-bold">{meta.total}</span> tours
         </p>
       </div>
 
-      <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
         {tours.map((tour) => (
-          <Link key={tour.id} href={`/tours/${tour.id}`}>
-            <Card className='group overflow-hidden transition-all hover:shadow-lg'>
-              <div className='relative h-48 overflow-hidden'>
-                <Image
-                  src={tour.images[0] || "/placeholder-tour.jpg"}
-                  alt={tour.title}
-                  fill
-                  className='object-cover transition-transform duration-300 group-hover:scale-105'
-                  sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-                />
-                <div className='absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-sm font-semibold'>
-                  ${tour.price}
-                </div>
-              </div>
-
-              <CardContent className='p-6'>
-                <div className='mb-3 flex items-center justify-between'>
-                  <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
-                    {tour.category}
-                  </span>
-                  <div className='flex items-center gap-1'>
-                    <Star className='h-4 w-4 fill-amber-400 text-amber-400' />
-                    <span className='font-bold'>
-                      {tour.averageRating.toFixed(1)}
-                    </span>
-                    <span className='text-gray-500'>({tour.totalReviews})</span>
-                  </div>
-                </div>
-
-                <h3 className='mb-2 line-clamp-1 text-lg font-bold text-gray-900'>
-                  {tour.title}
-                </h3>
-
-                <p className='mb-4 line-clamp-2 text-gray-600'>
-                  {tour.description}
-                </p>
-
-                <div className='flex items-center gap-2 text-sm text-gray-500'>
-                  <MapPin className='h-4 w-4' />
-                  <span>{tour.location}</span>
-                </div>
-
-                <div className='mt-4 flex items-center justify-between'>
-                  <div className='flex items-center gap-4 text-sm text-gray-500'>
-                    <div className='flex items-center gap-1'>
-                      <Clock className='h-4 w-4' />
-                      {tour.duration}
-                    </div>
-                    <div className='flex items-center gap-1'>
-                      <Users className='h-4 w-4' />
-                      Max {tour.maxGroupSize}
-                    </div>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    {tour.guide.photo && (
-                      <div className='relative h-8 w-8 overflow-hidden rounded-full'>
-                        <Image
-                          src={tour.guide.photo}
-                          alt={tour.guide.name}
-                          fill
-                          className='object-cover'
-                          sizes='32px'
-                        />
-                      </div>
-                    )}
-                    <span className='text-sm font-medium'>
-                      {tour.guide.name}
-                    </span>
-                    {/* Guide Badges */}
-                    <div className='flex items-center gap-1'>
-                      {tour.averageRating >= 4.5 && tour.totalReviews >= 10 && (
-                        <span className='rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700'>
-                          Super Guide
-                        </span>
-                      )}
-                      {tour.totalReviews < 3 && (
-                        <span className='rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700'>
-                          Newcomer
-                        </span>
-                      )}
-                      {tour.category?.toLowerCase().includes("food") && (
-                        <span className='rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700'>
-                          Foodie Expert
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <div key={tour.id} className="h-full">
+             <ListingCard listing={tour} />
+          </div>
         ))}
       </div>
 
       {/* Pagination */}
-      {meta.total > meta.limit && (
-        <div className='mt-8 flex justify-center'>
-          <div className='flex gap-2'>
-            {Array.from(
-              { length: Math.ceil(meta.total / meta.limit) },
-              (_, i) => i + 1
-            ).map((page) => (
-              <Link
-                key={page}
-                href={`/explore?page=${page}`}
-                className={`rounded-md px-4 py-2 ${
-                  meta.page === page
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}>
-                {page}
-              </Link>
-            ))}
+      {totalPages > 1 && (
+        <div className='mt-12 flex justify-center'>
+          <div className='flex items-center gap-2 bg-white dark:bg-slate-900/50 p-2 rounded-lg shadow-sm border border-border/50'>
+             <Button
+               variant="ghost"
+               size="icon"
+               disabled={meta.page <= 1}
+               asChild={meta.page > 1}
+             >
+               {meta.page > 1 ? (
+                  <Link href={createPageUrl(meta.page - 1)} aria-label="Previous Page">
+                     <ChevronLeft className="h-4 w-4" />
+                  </Link>
+               ) : (
+                  <span className="opacity-50"><ChevronLeft className="h-4 w-4" /></span>
+               )}
+             </Button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+               // Show ellipsis logic could be added here for many pages
+               if (
+                  page === 1 || 
+                  page === totalPages || 
+                  (page >= meta.page - 1 && page <= meta.page + 1)
+               ) {
+                  return (
+                     <Link
+                        key={page}
+                        href={createPageUrl(page)}
+                        className={`min-w-[40px] h-10 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                        meta.page === page
+                           ? "bg-primary text-primary-foreground shadow-sm"
+                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}>
+                        {page}
+                     </Link>
+                  );
+               } else if (
+                  (page === meta.page - 2 && page > 1) || 
+                  (page === meta.page + 2 && page < totalPages)
+               ) {
+                  return <span key={page} className="px-1 text-muted-foreground">...</span>;
+               }
+               return null;
+            })}
+
+            <Button
+               variant="ghost"
+               size="icon"
+               disabled={meta.page >= totalPages}
+               asChild={meta.page < totalPages}
+            >
+               {meta.page < totalPages ? (
+                  <Link href={createPageUrl(meta.page + 1)} aria-label="Next Page">
+                     <ChevronRight className="h-4 w-4" />
+                  </Link>
+               ) : (
+                  <span className="opacity-50"><ChevronRight className="h-4 w-4" /></span>
+               )}
+             </Button>
           </div>
         </div>
       )}

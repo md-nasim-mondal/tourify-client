@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  MapPin,
-  LayoutDashboard,
-  ListChecks,
-  CalendarCheck, Users,
-  Globe,
-  Star, Menu, CreditCard
+    MapPin,
+    LayoutDashboard,
+    ListChecks,
+    CalendarCheck, Users,
+    Globe,
+    Star, Menu, CreditCard
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,10 +29,16 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     (async () => {
-      const info = await getUserInfo();
-      setUser(info);
+      try {
+         const info = await getUserInfo();
+         setUser(info);
+      } finally {
+         setLoading(false);
+      }
     })();
   }, []);
 
@@ -124,8 +130,12 @@ export default function AppSidebar() {
     }
   ];
 
+  if (loading) {
+     return <div className="h-full w-full bg-background border-r animate-pulse" />;
+  }
+
   const visibleLinks = links.filter(
-    (l) => !user || (user.role ? l.roles.includes(user.role) : false)
+    (l) => user && user.role && l.roles.includes(user.role)
   );
 
   const SidebarContent = () => (

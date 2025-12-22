@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { MapPin, Star, Users, Clock, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TourDetailsProps {
   listing: {
@@ -37,35 +41,55 @@ interface TourDetailsProps {
 }
 
 export default function TourDetails({ listing }: TourDetailsProps) {
+  const [selectedImage, setSelectedImage] = useState(listing?.images?.[0] || "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=1000&auto=format&fit=crop");
+
   return (
     <div className='space-y-6'>
-      {/* Image Gallery */}
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-        <div className='relative col-span-2 h-96 overflow-hidden rounded-xl'>
-          <Image
-            src={listing?.images?.[0] || "/placeholder-tour.jpg"}
-            alt={listing?.title || ""}
-            fill
-            className='object-cover'
-            sizes='(max-width: 768px) 100vw, 66vw'
-            priority
-          />
-        </div>
-        <div className='grid grid-cols-2 gap-4'>
-          {listing?.images?.slice(1, 5)?.map((image, index) => (
-            <div
-              key={index}
-              className='relative h-44 overflow-hidden rounded-xl'>
+      {/* Interactive Image Gallery */}
+      <div className='space-y-4'>
+        <div className='relative h-[400px] md:h-[500px] w-full overflow-hidden rounded-2xl border border-border/50 shadow-sm'>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedImage}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="relative h-full w-full"
+            >
               <Image
-                src={image}
-                alt={`${listing?.title} - ${index + 1}`}
+                src={selectedImage}
+                alt={listing?.title || "Tour Image"}
                 fill
                 className='object-cover'
-                sizes='(max-width: 768px) 50vw, 33vw'
+                priority
               />
-            </div>
-          ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
+        
+        {listing?.images && listing.images.length > 1 && (
+          <div className='flex gap-4 overflow-x-auto pb-2 scrollbar-hide'>
+            {listing.images.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedImage(image)}
+                className={`relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                  selectedImage === image 
+                    ? "border-primary ring-2 ring-primary/20" 
+                    : "border-transparent opacity-70 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src={image}
+                  alt={`Thumbnail ${index + 1}`}
+                  fill
+                  className='object-cover'
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Tour Info */}
