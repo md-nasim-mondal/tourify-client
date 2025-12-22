@@ -6,6 +6,8 @@ import { I18nProvider } from "@/context/i18n";
 import LoginSuccessToast from "@/components/modules/auth/LoginSuccessToast";
 import LogoutSuccessToast from "@/components/modules/auth/LogoutSuccessToast";
 import { Suspense } from "react";
+import { CartProvider } from "@/context/CartContext";
+import { UserProvider } from "@/context/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,14 +34,18 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <I18nProvider>
-          {children}
-          <Toaster richColors position='top-right' />
-          <Suspense fallback={null}>
-            <LoginSuccessToast />
-          </Suspense>
-          <Suspense fallback={null}>
-            <LogoutSuccessToast />
-          </Suspense>
+          <UserProvider>
+            <CartProvider>
+              {children}
+              <Toaster richColors position='top-right' />
+              <Suspense fallback={null}>
+                <LoginSuccessToast />
+              </Suspense>
+              <Suspense fallback={null}>
+                <LogoutSuccessToast />
+              </Suspense>
+            </CartProvider>
+          </UserProvider>
         </I18nProvider>
       </body>
     </html>

@@ -1,21 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { logoutUser } from "@/services/auth/logoutUser";
-import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 const LogoutButton = () => {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await logoutUser();
-    // Force hard refresh to ensure Navbar state (which is in Layout) is cleared
-    // router.refresh() might not reset client-side state of persistent components
-    window.location.href = "/login";
-  };
+  const { logout } = useUser();
 
   return (
-    <Button variant={"destructive"} onClick={handleLogout}>
+    <Button variant={"destructive"} onClick={() => logout()}>
       Logout
     </Button>
   );
